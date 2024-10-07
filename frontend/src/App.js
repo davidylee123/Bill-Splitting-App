@@ -7,7 +7,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        {/* Add more routes as needed */}
+        {/* Add more routes */}
       </Routes>
     </Router>
   );
