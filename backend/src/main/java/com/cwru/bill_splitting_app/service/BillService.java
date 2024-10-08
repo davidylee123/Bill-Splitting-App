@@ -18,6 +18,6 @@ public class BillService {
     }
 
     public List<Bill> getBillsByUserId(String userId) {
-        return billRepository.findByUserId(userId);
+        return billRepository.findByUsersUserId(userId);
     }
 }
