@@ -6,7 +6,6 @@ const HomePage = () => {
     return (
         <div>
             <h1>Bill Splitting App</h1>
-            <BillForm />
             <BillList />
         </div>
     );
