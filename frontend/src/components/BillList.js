@@ -10,19 +10,13 @@ import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
 
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
-import AppBar from '@mui/material/AppBar';
+import MuiAppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
-import List from '@mui/material/List';
-import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
 import { styled, useTheme } from '@mui/material/styles';
 
 import Fab from '@mui/material/Fab';
@@ -57,6 +51,29 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
       ],
     }),
   );
+
+const AppBar = styled(MuiAppBar, {
+    shouldForwardProp: (prop) => prop !== 'open',
+  })(({ theme }) => ({
+    transition: theme.transitions.create(['margin', 'width'], {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.leavingScreen,
+    }),
+    variants: [
+      {
+        props: ({ open }) => open,
+        style: {
+          width: `calc(100% - ${drawerWidth}px)`,
+          marginLeft: `${drawerWidth}px`,
+          transition: theme.transitions.create(['margin', 'width'], {
+            easing: theme.transitions.easing.easeOut,
+            duration: theme.transitions.duration.enteringScreen,
+          }),
+        },
+      },
+    ],
+  }));
+
 
 const columns = [
     { id: 'title', label: 'Title', minWidth: 170 },
@@ -136,7 +153,7 @@ const BillList = () => {
     }, []);
 
     return (
-        <div>
+        <div >
 
 {/* form Drawer */}
 <Box sx={{ display: 'flex' }}>
@@ -159,9 +176,7 @@ const BillList = () => {
         open={open}
       >
         
-          <Button color="error" variant="contained" onClick={handleDrawerClose}>
-            Close
-          </Button>
+          
         <Divider />
             <form onSubmit={handleSubmit}>
                 <TextField
@@ -181,9 +196,13 @@ const BillList = () => {
                     ))}
                 </FormGroup>
                 
-                
-                {/* Add fields to enter expenses here */}
-                <Button variant="contained" type="submit">Create Bill</Button>
+                <Stack spacing={1} direction="row">
+                <Button color="error" variant="outlined" onClick={handleDrawerClose}>
+                Close
+                </Button>
+                <Button align="right" variant="contained" type="submit">Create Bill</Button>
+                </Stack>
+
             </form>
       </Drawer>
       <Main open={open}>

@@ -12,28 +12,22 @@ import TableRow from '@mui/material/TableRow';
 
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
-import AppBar from '@mui/material/AppBar';
+import MuiAppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
-import List from '@mui/material/List';
-import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton';
-import ListItem from '@mui/material/ListItem';
 import Button from '@mui/material/Button';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
+import Stack from '@mui/material/Stack';
 import { styled, useTheme } from '@mui/material/styles';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
+import FormLabel from '@mui/material/FormLabel';
 
 import Fab from '@mui/material/Fab';
 import TextField from '@mui/material/TextField';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
-import FormGroup from '@mui/material/FormGroup';
 
 import { useLocation } from 'react-router-dom';
-
+import AddIcon from '@mui/icons-material/Add';
 
 const drawerWidth = 240;
 
@@ -60,6 +54,28 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
       ],
     }),
   );
+
+  const AppBar = styled(MuiAppBar, {
+    shouldForwardProp: (prop) => prop !== 'open',
+  })(({ theme }) => ({
+    transition: theme.transitions.create(['margin', 'width'], {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.leavingScreen,
+    }),
+    variants: [
+      {
+        props: ({ open }) => open,
+        style: {
+          width: `calc(100% - ${drawerWidth}px)`,
+          marginLeft: `${drawerWidth}px`,
+          transition: theme.transitions.create(['margin', 'width'], {
+            easing: theme.transitions.easing.easeOut,
+            duration: theme.transitions.duration.enteringScreen,
+          }),
+        },
+      },
+    ],
+  }));
 
 const columns = [
     { id: 'title', label: 'Title', minWidth: 170 },
@@ -154,9 +170,7 @@ const ExpenseList = () => {
         open={open}
       >
         
-          <Button color="error" variant="contained" onClick={handleDrawerClose}>
-            Close
-          </Button>
+          
         <Divider />
         <form onSubmit={handleSubmit}>
                 <TextField
@@ -164,7 +178,7 @@ const ExpenseList = () => {
                     value={title}
                     label="Title of Expense"
                     onChange={(e) => setTitle(e.target.value)}
-                    style={{float: "right", marginRight: 10}}
+                    style={{float: "right", marginTop: 10, marginRight: 10}}
                 />
                 <br/>
                 <TextField
@@ -172,22 +186,30 @@ const ExpenseList = () => {
                     value={amount}
                     label="Expense Amount"
                     onChange={(e) => setAmount(e.target.value)}
-                    style={{float: "right", marginRight: 10}}
+                    style={{float: "right", marginTop: 10, marginRight: 10}}
                 />
-                <br/>
-                User That Paid
+                <br/> 
+                <Divider />
+                <br /> 
+                <FormLabel id="radio-group-label">Paid By</FormLabel>
                     <RadioGroup
-                      aria-labelledby="demo-radio-buttons-group-label"
+                      aria-labelledby="radio-group-label"
                       defaultValue="female"
                       name="radio-buttons-group"
+                      style={{marginBottom: 10, marginLeft: 10}}
                     >
                       {Users.map(user => (
                         <FormControlLabel onChange={(e) => setUserPaid(e.target.value)} value={user.name} control={<Radio />} label={user.name} />
                       ))}
                     </RadioGroup>
                 {/* Add fields to enter expenses here */}
-                <br/>
-                <Button variant="contained" type="submit">Create Expense</Button>
+
+                <Stack spacing={1} direction="row">
+                <Button color="error" variant="outlined" onClick={handleDrawerClose}>
+                Close
+                </Button>
+                <Button variant="contained" type="submit">Add <AddIcon /></Button>
+                </Stack>
             </form>
       </Drawer>
       <Main open={open}>
