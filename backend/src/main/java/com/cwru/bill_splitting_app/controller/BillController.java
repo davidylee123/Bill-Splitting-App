@@ -22,26 +22,45 @@ public class BillController {
         return ResponseEntity.ok(bills);
     }
 
-    @PostMapping
-    public ResponseEntity<Bill> createBill(@RequestBody Bill bill) {
-        return ResponseEntity.ok(billService.createBill(bill));
+    @GetMapping("/{id}")
+    public ResponseEntity<List<Bill>> getBillsById(@PathVariable String id) {
+        List<Bill> bills = billService.getBillsByCustomId(id);
+        if (bills.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        } else {
+            return ResponseEntity.ok(bills);
+        }
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Bill> getBillById(@PathVariable String id) {
-        Optional<Bill> bill = billService.getBillById(id);
+    @GetMapping("/expenses/{expenseId}")
+    public ResponseEntity<Bill> getBillByExpenseId(@PathVariable String expenseId) {
+        Optional<Bill> bill = billService.getBillByExpenseId(expenseId);
         return bill.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<Bill> getBillByUserId(@PathVariable String userId) {
+        Optional<Bill> bill = billService.getBillByUserId(userId);
+        return bill.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    public ResponseEntity<Bill> createBill(@RequestBody Bill bill) {
+        Bill createdBill = billService.createBill(bill);
+        return ResponseEntity.ok(createdBill);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Bill> updateBill(@PathVariable String id, @RequestBody Bill billDetails) {
         Optional<Bill> updatedBill = billService.updateBill(id, billDetails);
-        return updatedBill.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return updatedBill.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBill(@PathVariable String id) {
-        if (billService.deleteBill(id)) {
+        boolean isDeleted = billService.deleteBill(id);
+        if (isDeleted) {
             return ResponseEntity.noContent().build();
         } else {
             return ResponseEntity.notFound().build();

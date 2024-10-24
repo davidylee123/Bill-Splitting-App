@@ -19,15 +19,27 @@ public class BillService {
     }
 
     public Bill createBill(Bill bill) {
+        Optional<Bill> existingBill = billRepository.findByCustomId(bill.getId());
+        if (existingBill.isPresent()) {
+            throw new IllegalArgumentException("A bill with this id already exists.");
+        }
         return billRepository.save(bill);
     }
 
-    public Optional<Bill> getBillById(String id) {
-        return billRepository.findById(id);
+    public List<Bill> getBillsByCustomId(String id) {
+        return billRepository.findAllById(id);
+    }
+
+    public Optional<Bill> getBillByExpenseId(String expenseId) {
+        return billRepository.findByExpensesId(expenseId);
+    }
+
+    public Optional<Bill> getBillByUserId(String userId) {
+        return billRepository.findByUsersId(userId);
     }
 
     public Optional<Bill> updateBill(String id, Bill billDetails) {
-        Optional<Bill> existingBill = billRepository.findById(id);
+        Optional<Bill> existingBill = billRepository.findByCustomId(id);  // Use custom "id" for updating
         if (existingBill.isPresent()) {
             Bill bill = existingBill.get();
             bill.setTitle(billDetails.getTitle());
@@ -40,7 +52,7 @@ public class BillService {
     }
 
     public boolean deleteBill(String id) {
-        Optional<Bill> bill = billRepository.findById(id);
+        Optional<Bill> bill = billRepository.findByCustomId(id);  // Use custom "id" for deletion
         if (bill.isPresent()) {
             billRepository.delete(bill.get());
             return true;
