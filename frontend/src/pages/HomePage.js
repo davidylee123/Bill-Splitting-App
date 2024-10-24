@@ -5,8 +5,7 @@ import BillList from '../components/BillList';
 const HomePage = () => {
     return (
         <div>
-            <h1>Bill Splitting App</h1>
-            <BillForm />
+            <h2>Bill Splitting App</h2>
             <BillList />
         </div>
     );
