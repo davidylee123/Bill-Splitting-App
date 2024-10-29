@@ -108,14 +108,20 @@ const BillList = () => {
     };
 
 
-    const [bills, setBills] = useState([{title: 'bill', friends: 'Adriana', amount: '15.00'}, {title: 'different bill', friends: 'Andrew', amount: '2.00'}]);
+    const [bills, setBills] = useState([{title: 'bill', friends: ['Adriana', 'Alan'], amount: '15.00'}, {title: 'different bill', friends: ['Andrew', 'Adriana'], amount: '2.00'}]);
     const [title, setTitle] = useState('');
-    const [friend, setFriend] = useState('');
+    //const [friend, setFriend] = useState('');
     const [expenses, setExpenses] = useState([]);
-    const [friends, setFriends] = useState([{name: 'Andrew'}, {name: 'Adriana'}]);
+    const [friends, setFriends] = useState([{name: 'Andrew', included: false}, {name: 'Adriana', included: false}]);
     
     const handleFriendSelect = (event, n) => {
-        setFriend(n);
+      friends.map(f => {
+        if(f.name === n){
+          f.included = !f.included
+        }   
+      });
+
+        // setFriend(n);
         // if(event.value){
         //     setFriend(...friend, {name: n});
         // }else{
@@ -125,10 +131,15 @@ const BillList = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setBills([...bills, {id: 1, title: title, friends: friend, amount: "0.00"}]);
+        let billFriends = [];
+        friends.map(f => {
+          if(f.included){
+            billFriends.push(f.name);
+          }
+        })
+        setBills([...bills, {id: 1, title: title, friends: billFriends, amount: "0.00"}]);
         setTitle('');
-        setFriend('');
-        const newBill = { title, expenses };
+        const newBill = { title, expenses, friends};
     
         try {
             const response = await axios.post('http://localhost:8080/api/bills', newBill);
@@ -239,10 +250,12 @@ const BillList = () => {
                                 <TableCell key={column.id} align={column.align}>
                                     {column.id === 'title' 
                                         ? <Button onClick={() => {document.location='http://localhost:3000/'+value}}> {value}</Button> 
-                                        // :column.id === 'friends'
-                                        // ? value.map((friend) => (
-                                        //     friend.name
-                                        // ))
+                                        :column.id === 'friends'
+                                        ? value.map((friend, i) => (
+                                          i == 0 ?
+                                          friend :
+                                          ", " + friend
+                                        ))
                                         : value}
                                     
                                 </TableCell>
