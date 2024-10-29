@@ -25,6 +25,9 @@ import FormLabel from '@mui/material/FormLabel';
 import Fab from '@mui/material/Fab';
 import TextField from '@mui/material/TextField';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
+import FormGroup from '@mui/material/FormGroup';
+import InputAdornment from '@mui/material/InputAdornment';
 
 import { useLocation } from 'react-router-dom';
 import AddIcon from '@mui/icons-material/Add';
@@ -78,18 +81,11 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
   }));
 
 const columns = [
-    { id: 'title', label: 'Title', minWidth: 170 },
-    { id: 'amount', label: 'Amount', minWidth: 100 },
-    {
-      id: 'user',
-      label: 'Paid By',
-      minWidth: 170,
-      align: 'right',
-    },
+    { id: 'title', label: 'Title', minWidth: 100 },
+    { id: 'user', label: 'Paid By', minWidth: 100 },
+    { id: 'friends', label: 'Shared Between', minWidth: 100 },
+    { id: 'amount', label: 'Amount', minWidth: 100, align: 'right' }
   ];
-
-
-
 
 
 const ExpenseList = () => {
@@ -125,12 +121,28 @@ const ExpenseList = () => {
     const [Expenses, setExpenses] = useState([]);
     const [title, setTitle] = useState('');
     const [amount, setAmount] = useState('');
-    const [Users, setUsers] = useState([{name: 'jenny'},{name: 'alex'}]);
     const [userPaid, setUserPaid] = useState('');
+    const [friends, setFriends] = useState([{name: 'Andrew', included: false}, {name: 'Adriana', included: false}]);
+    const [Users, setUsers] = useState([{name: 'Andrew'},{name: 'Adriana'}]);
     
+    const handleFriendSelect = (event, n) => {
+      friends.map(f => {
+        if(f.name === n){
+          f.included = !f.included
+        }   
+      });
+
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setExpenses([...Expenses, {id: 1, title: title, amount: amount, user: userPaid}]);
+        let expenseFriends = [];
+        friends.map(f => {
+          if(f.included){
+            expenseFriends.push(f.name);
+          }
+        })
+        setExpenses([...Expenses, {id: 1, title: title, amount: amount, user: userPaid, friends: expenseFriends}]);
     };
 
     useEffect(() => {
@@ -174,24 +186,32 @@ const ExpenseList = () => {
         <Divider />
         <form onSubmit={handleSubmit}>
                 <TextField
-                    placeholder="Expense Title"
                     value={title}
                     label="Title of Expense"
                     onChange={(e) => setTitle(e.target.value)}
-                    style={{float: "right", marginTop: 10, marginRight: 10}}
+                    margin="normal"
+                    fullWidth
+                    variant="standard"
                 />
                 <br/>
                 <TextField
-                    placeholder="Expense Amount"
+                    slotProps={{
+                      input: {
+                        startAdornment: (<InputAdornment position="start">$</InputAdornment>),
+                      },
+                    }}
+                      
                     value={amount}
                     label="Expense Amount"
                     onChange={(e) => setAmount(e.target.value)}
-                    style={{float: "right", marginTop: 10, marginRight: 10}}
+                    margin="normal"
+                    fullWidth
+                    variant="standard"
                 />
                 <br/> 
                 <Divider />
                 <br /> 
-                <FormLabel id="radio-group-label">Paid By</FormLabel>
+                <FormLabel id="radio-group-label">Paid By:</FormLabel>
                     <RadioGroup
                       aria-labelledby="radio-group-label"
                       defaultValue="female"
@@ -202,6 +222,16 @@ const ExpenseList = () => {
                         <FormControlLabel onChange={(e) => setUserPaid(e.target.value)} value={user.name} control={<Radio />} label={user.name} />
                       ))}
                     </RadioGroup>
+                <FormLabel id="checkbox-group-label">Shared Between:</FormLabel>
+                <FormGroup aria-labelledby='checkbox-group-label'>
+                  {friends.map((friend) => (
+                    <FormControlLabel 
+                        value={friend.name}
+                        onChange={(e) => handleFriendSelect(e.target, friend.name)}
+                        control={<Checkbox />} 
+                        label={friend.name} />
+                    ))}
+                </FormGroup>
                 {/* Add fields to enter expenses here */}
 
                 <Stack spacing={1} direction="row">
@@ -221,7 +251,7 @@ const ExpenseList = () => {
                 <Table stickyHeader aria-label="sticky table">
                   <TableHead>
                     <TableRow>
-                            <TableCell colSpan={3} align="center"><h2>Expenses</h2></TableCell>
+                            <TableCell colSpan={4} align="center"><h2>Expenses</h2></TableCell>
                     </TableRow>
                     <TableRow>
                       {columns.map((column) => (
@@ -245,8 +275,12 @@ const ExpenseList = () => {
                               const value = Expenses[column.id];
                               return (
                                 <TableCell key={column.id} align={column.align}>
-                                  {column.format && typeof value === 'number'
-                                    ? column.format(value)
+                                  {column.id === 'friends' 
+                                    ? value.map((friend, i) => (
+                                      i == 0 ?
+                                      friend :
+                                      ", " + friend
+                                    ))
                                     : value}
                                 </TableCell>
                               );

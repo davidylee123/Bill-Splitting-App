@@ -121,12 +121,6 @@ const BillList = () => {
         }   
       });
 
-        // setFriend(n);
-        // if(event.value){
-        //     setFriend(...friend, {name: n});
-        // }else{
-        //     setFriend(friend.filter(f => f.name !== n));
-        // }
     };
 
     const handleSubmit = async (e) => {
