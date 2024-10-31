@@ -99,6 +99,8 @@ const BillList = () => {
       const handleDrawerClose = () => {
         setOpen(false);
         setTitle('');
+        setTitleErr(false);
+        setFriendsErr(false);
       };
 
 

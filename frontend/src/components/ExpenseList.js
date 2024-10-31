@@ -109,6 +109,10 @@ const ExpenseList = () => {
 
   const handleDrawerClose = () => {
     setOpen(false);
+    setTitleErr(false);
+    setFriendsErr(false);
+    setPaidErr(false);
+    setAmountErr(false);
   };
 
   //for table
@@ -184,8 +188,8 @@ const ExpenseList = () => {
           setPaidErr(false);
         }
 
-        let n = amount.toFixed(2);
-        if(amount == '' || amount == NaN || amount < 0 || amount != n){
+        let amountFormatted = amount.toFixed(2);
+        if(amount == '' || amount == NaN || amount < 0 || amount != amountFormatted){
           setAmountErr(true);
         }else{
           setAmountErr(false);
@@ -193,9 +197,9 @@ const ExpenseList = () => {
 
         if(!titleErr && !friendsErr && !paidErr && !amountErr){
           
-          setExpenses([...Expenses, {id: currID, title: title, amount: amount, user: userPaid, friends: expenseFriends}]);
+          setExpenses([...Expenses, {id: currID, title: title, amount: amountFormatted, user: userPaid, friends: expenseFriends}]);
           setCurrID(currID+1);
-          setAmount(null);
+          setAmount(NaN);
           setTitle('');
         }
         
