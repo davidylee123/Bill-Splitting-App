@@ -16,6 +16,7 @@ import MuiAppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Divider from '@mui/material/Divider';
 import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
 import { styled, useTheme } from '@mui/material/styles';
 import Radio from '@mui/material/Radio';
@@ -31,6 +32,11 @@ import InputAdornment from '@mui/material/InputAdornment';
 
 import { useLocation } from 'react-router-dom';
 import AddIcon from '@mui/icons-material/Add';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 
 const drawerWidth = 240;
 
@@ -81,10 +87,11 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
   }));
 
 const columns = [
-    { id: 'title', label: 'Title', minWidth: 100 },
-    { id: 'user', label: 'Paid By', minWidth: 100 },
-    { id: 'friends', label: 'Shared Between', minWidth: 100 },
-    { id: 'amount', label: 'Amount', minWidth: 100, align: 'right' }
+    { id: 'title', label: 'Title', minWidth: 50, align: 'left' },
+    { id: 'user', label: 'Paid By', minWidth: 50, align: 'center'},
+    { id: 'friends', label: 'Shared Between', minWidth: 50, align: 'center'},
+    { id: 'amount', label: 'Amount', minWidth: 50, align: 'center'},
+    { id: 'id', label: 'Actions', minWidth: 50, align: 'right' }
   ];
 
 
@@ -99,7 +106,6 @@ const ExpenseList = () => {
 
   const handleDrawerClose = () => {
     setOpen(false);
-    setTitle('');
   };
 
   //for table
@@ -120,10 +126,11 @@ const ExpenseList = () => {
 
     const [Expenses, setExpenses] = useState([]);
     const [title, setTitle] = useState('');
-    const [amount, setAmount] = useState('');
+    const [amount, setAmount] = useState();
     const [userPaid, setUserPaid] = useState('');
     const [friends, setFriends] = useState([{name: 'Andrew', included: false}, {name: 'Adriana', included: false}]);
     const [Users, setUsers] = useState([{name: 'Andrew'},{name: 'Adriana'}]);
+    const [currID, setCurrID] = useState(0);
     
     const handleFriendSelect = (event, n) => {
       friends.map(f => {
@@ -134,6 +141,17 @@ const ExpenseList = () => {
 
     };
 
+    const handleDelete = (n) => {
+      setExpenses(Expenses.filter((f) => f.id !== n));
+    }
+
+    const handleEdit = (n) => {
+      //setTitle(col.title);
+      //setAmount(col.amount);
+
+      setExpenses(Expenses.filter((f) => f.id !== n));
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         let expenseFriends = [];
@@ -142,7 +160,8 @@ const ExpenseList = () => {
             expenseFriends.push(f.name);
           }
         })
-        setExpenses([...Expenses, {id: 1, title: title, amount: amount, user: userPaid, friends: expenseFriends}]);
+        setExpenses([...Expenses, {id: currID, title: title, amount: amount, user: userPaid, friends: expenseFriends}]);
+        setCurrID(currID+1);
     };
 
     useEffect(() => {
@@ -185,13 +204,15 @@ const ExpenseList = () => {
           
         <Divider />
         <form onSubmit={handleSubmit}>
+          <Stack spacing={1} direction="column">
+            <h2 align="center">Create New Expense</h2>
+            <Divider />
                 <TextField
                     value={title}
                     label="Title of Expense"
                     onChange={(e) => setTitle(e.target.value)}
                     margin="normal"
                     fullWidth
-                    variant="standard"
                 />
                 <br/>
                 <TextField
@@ -200,35 +221,34 @@ const ExpenseList = () => {
                         startAdornment: (<InputAdornment position="start">$</InputAdornment>),
                       },
                     }}
-                      
+                    type="number"
                     value={amount}
                     label="Expense Amount"
                     onChange={(e) => setAmount(e.target.value)}
                     margin="normal"
                     fullWidth
-                    variant="standard"
                 />
+                </Stack>
                 <br/> 
                 <Divider />
                 <br /> 
                 <FormLabel id="radio-group-label">Paid By:</FormLabel>
                     <RadioGroup
                       aria-labelledby="radio-group-label"
-                      defaultValue="female"
-                      name="radio-buttons-group"
                       style={{marginBottom: 10, marginLeft: 10}}
                     >
                       {Users.map(user => (
                         <FormControlLabel onChange={(e) => setUserPaid(e.target.value)} value={user.name} control={<Radio />} label={user.name} />
                       ))}
                     </RadioGroup>
-                <FormLabel id="checkbox-group-label">Shared Between:</FormLabel>
+                <FormLabel id="checkbox-group-label"> Shared Between: </FormLabel>
                 <FormGroup aria-labelledby='checkbox-group-label'>
                   {friends.map((friend) => (
                     <FormControlLabel 
                         value={friend.name}
                         onChange={(e) => handleFriendSelect(e.target, friend.name)}
-                        control={<Checkbox />} 
+                        control={<Checkbox icon={<PersonOutlineOutlinedIcon />}
+                        checkedIcon={<PersonAddIcon />}/>} 
                         label={friend.name} />
                     ))}
                 </FormGroup>
@@ -251,7 +271,7 @@ const ExpenseList = () => {
                 <Table stickyHeader aria-label="sticky table">
                   <TableHead>
                     <TableRow>
-                            <TableCell colSpan={4} align="center"><h2>Expenses</h2></TableCell>
+                            <TableCell colSpan={5} align="center"><h2>Expenses</h2></TableCell>
                     </TableRow>
                     <TableRow>
                       {columns.map((column) => (
@@ -281,7 +301,12 @@ const ExpenseList = () => {
                                       friend :
                                       ", " + friend
                                     ))
-                                    : value}
+                                    : column.id === 'id' 
+                                    ? <>
+                                    <IconButton onClick={() => handleEdit(value)} color="warning"><EditIcon /></IconButton>
+                                    <IconButton onClick={() => handleDelete(value)} color="error"><DeleteIcon /></IconButton>
+                                    </>
+                                    :value}
                                 </TableCell>
                               );
                             })}
@@ -323,7 +348,7 @@ const ExpenseList = () => {
               open && { display: 'none' },
             ]}
           >
-            Create Expense
+            Create Expense &nbsp;<AddCircleOutlineIcon />
           </Fab>
 
 

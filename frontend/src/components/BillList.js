@@ -24,6 +24,7 @@ import TextField from '@mui/material/TextField';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import FormGroup from '@mui/material/FormGroup';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
 
 
 const drawerWidth = 240;
@@ -184,6 +185,9 @@ const BillList = () => {
           
         <Divider />
             <form onSubmit={handleSubmit}>
+            <Stack spacing={1} direction="column">
+            <h2 align="center">Create New Bill</h2>
+            <Divider />
                 <TextField
                     variant="outlined"
                     placeholder="Bill Title"
@@ -200,7 +204,7 @@ const BillList = () => {
                         label={friend.name} />
                     ))}
                 </FormGroup>
-                
+                </Stack>
                 <Stack spacing={1} direction="row">
                 <Button color="error" variant="outlined" onClick={handleDrawerClose}>
                 Close
@@ -292,7 +296,7 @@ const BillList = () => {
               open && { display: 'none' },
             ]}
           >
-            Create Bill
+            Create Bill <AddCircleIcon />
           </Fab>
 
         </div>
