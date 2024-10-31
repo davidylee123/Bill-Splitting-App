@@ -25,6 +25,9 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import FormGroup from '@mui/material/FormGroup';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import IconButton from '@mui/material/IconButton';
 
 
 const drawerWidth = 240;
@@ -77,9 +80,10 @@ const AppBar = styled(MuiAppBar, {
 
 
 const columns = [
-    { id: 'title', label: 'Title', minWidth: 170 },
-    { id: 'friends', label: 'Friends', minWidth: 170},
-    { id: 'amount', label: 'Amount', minWidth: 100 },
+    { id: 'title', label: 'Title', minWidth: 50 },
+    { id: 'friends', label: 'Friends', minWidth: 50 },
+    { id: 'amount', label: 'Amount', minWidth: 50 },
+    { id: 'id', label: 'Edit', minWidth: 50 },
   ];
 
 const BillList = () => {
@@ -109,12 +113,13 @@ const BillList = () => {
     };
 
 
-    const [bills, setBills] = useState([{title: 'bill', friends: ['Adriana', 'Alan'], amount: '15.00'}, {title: 'different bill', friends: ['Andrew', 'Adriana'], amount: '2.00'}]);
+    const [bills, setBills] = useState([{title: 'bill', friends: ['Adriana', 'Alan'], amount: '15.00', id: -2}, {title: 'different bill', friends: ['Andrew', 'Adriana'], amount: '2.00', id: -1}]);
     const [title, setTitle] = useState('');
     //const [friend, setFriend] = useState('');
     const [expenses, setExpenses] = useState([]);
     const [friends, setFriends] = useState([{name: 'Andrew', included: false}, {name: 'Adriana', included: false}]);
-    
+    const [currID, setCurrID] = useState(0);
+
     const handleFriendSelect = (event, n) => {
       friends.map(f => {
         if(f.name === n){
@@ -124,6 +129,17 @@ const BillList = () => {
 
     };
 
+    const handleDelete = (n) => {
+      setBills(bills.filter((f) => f.id !== n));
+    }
+
+    const handleEdit = (n) => {
+      //setTitle(col.title);
+      //setAmount(col.amount);
+
+      setBills(bills.filter((f) => f.id !== n));
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         let billFriends = [];
@@ -132,7 +148,7 @@ const BillList = () => {
             billFriends.push(f.name);
           }
         })
-        setBills([...bills, {id: 1, title: title, friends: billFriends, amount: "0.00"}]);
+        setBills([...bills, {id: currID, title: title, friends: billFriends, amount: "0.00"}]);
         setTitle('');
         const newBill = { title, expenses, friends};
     
@@ -222,7 +238,7 @@ const BillList = () => {
                 <Table stickyHeader aria-label="sticky table">
                   <TableHead>
                     <TableRow>
-                            <TableCell colSpan={3} align="center"><h2>Bills</h2></TableCell>
+                            <TableCell colSpan={4} align="center"><h2>Bills</h2></TableCell>
                     </TableRow>
                     <TableRow>
                       {columns.map((column) => (
@@ -254,7 +270,12 @@ const BillList = () => {
                                           friend :
                                           ", " + friend
                                         ))
-                                        : value}
+                                        : column.id === 'id' 
+                                        ? <>
+                                        <IconButton onClick={() => handleEdit(value)} color="warning"><EditIcon /></IconButton>
+                                        <IconButton onClick={() => handleDelete(value)} color="error"><DeleteIcon /></IconButton>
+                                        </>
+                                        :value}
                                     
                                 </TableCell>
                               );
