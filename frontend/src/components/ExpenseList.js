@@ -37,6 +37,9 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import CloseIcon from '@mui/icons-material/Close';
+
+import { red } from '@mui/material/colors';
 
 const drawerWidth = 240;
 
@@ -126,11 +129,15 @@ const ExpenseList = () => {
 
     const [Expenses, setExpenses] = useState([]);
     const [title, setTitle] = useState('');
-    const [amount, setAmount] = useState();
+    const [amount, setAmount] = useState(null);
     const [userPaid, setUserPaid] = useState('');
     const [friends, setFriends] = useState([{name: 'Andrew', included: false}, {name: 'Adriana', included: false}]);
     const [Users, setUsers] = useState([{name: 'Andrew'},{name: 'Adriana'}]);
     const [currID, setCurrID] = useState(0);
+    const [titleErr, setTitleErr] = useState(false);
+    const [friendsErr, setFriendsErr] = useState(false);
+    const [paidErr, setPaidErr] = useState(false);
+    const [amountErr, setAmountErr] = useState(false);
     
     const handleFriendSelect = (event, n) => {
       friends.map(f => {
@@ -160,8 +167,38 @@ const ExpenseList = () => {
             expenseFriends.push(f.name);
           }
         })
-        setExpenses([...Expenses, {id: currID, title: title, amount: amount, user: userPaid, friends: expenseFriends}]);
-        setCurrID(currID+1);
+
+        if(title.length < 1){
+          setTitleErr(true);
+        }else{
+          setTitleErr(false);
+        }
+        if(expenseFriends.length < 1){
+          setFriendsErr(true);
+        }else{
+          setFriendsErr(false);
+        }
+        if(userPaid.length < 1){
+          setPaidErr(true);
+        }else{
+          setPaidErr(false);
+        }
+
+        let n = amount.toFixed(2);
+        if(amount == '' || amount == NaN || amount < 0 || amount != n){
+          setAmountErr(true);
+        }else{
+          setAmountErr(false);
+        }
+
+        if(!titleErr && !friendsErr && !paidErr && !amountErr){
+          
+          setExpenses([...Expenses, {id: currID, title: title, amount: amount, user: userPaid, friends: expenseFriends}]);
+          setCurrID(currID+1);
+          setAmount(null);
+          setTitle('');
+        }
+        
     };
 
     useEffect(() => {
@@ -205,17 +242,52 @@ const ExpenseList = () => {
         <Divider />
         <form onSubmit={handleSubmit}>
           <Stack spacing={1} direction="column">
-            <h2 align="center">Create New Expense</h2>
+          <Stack spacing={1} direction="row">
+            <h2 align="center">Create Expense</h2>
+            <IconButton size="small" color="error" variant="outlined" onClick={handleDrawerClose}>
+              <CloseIcon />
+              </IconButton>
+          </Stack>
             <Divider />
-                <TextField
-                    value={title}
-                    label="Title of Expense"
-                    onChange={(e) => setTitle(e.target.value)}
-                    margin="normal"
-                    fullWidth
-                />
+            {titleErr ?
+              <TextField
+                error
+                helperText="Please enter a title for the bill."
+                value={title}
+                label="Title of Expense"
+                onChange={(e) => setTitle(e.target.value)}
+                margin="normal"
+                fullWidth
+              />
+            :
+            <TextField
+                value={title}
+                label="Title of Expense"
+                onChange={(e) => setTitle(e.target.value)}
+                margin="normal"
+                fullWidth
+            />
+            }
+                
                 <br/>
-                <TextField
+              {amountErr ?
+              <TextField
+              error
+              helperText="Please enter valid amount"
+              slotProps={{
+                input: {
+                  startAdornment: (<InputAdornment position="start">$</InputAdornment>),
+                },
+              }}
+              type="number"
+              value={amount}
+              label="Expense Amount"
+              onChange={(e) => setAmount(e.target.valueAsNumber)}
+              margin="normal"
+              fullWidth
+          />
+              :
+              <TextField
                     slotProps={{
                       input: {
                         startAdornment: (<InputAdornment position="start">$</InputAdornment>),
@@ -224,24 +296,53 @@ const ExpenseList = () => {
                     type="number"
                     value={amount}
                     label="Expense Amount"
-                    onChange={(e) => setAmount(e.target.value)}
+                    onChange={(e) => setAmount(e.target.valueAsNumber)}
                     margin="normal"
                     fullWidth
                 />
+              }
+                
                 </Stack>
                 <br/> 
                 <Divider />
                 <br /> 
                 <FormLabel id="radio-group-label">Paid By:</FormLabel>
-                    <RadioGroup
-                      aria-labelledby="radio-group-label"
-                      style={{marginBottom: 10, marginLeft: 10}}
-                    >
-                      {Users.map(user => (
-                        <FormControlLabel onChange={(e) => setUserPaid(e.target.value)} value={user.name} control={<Radio />} label={user.name} />
-                      ))}
-                    </RadioGroup>
+                {paidErr ?
+                  <RadioGroup
+                    aria-labelledby="radio-group-label"
+                    style={{marginBottom: 10, marginLeft: 10}}
+                  >
+                    {Users.map(user => (
+                      <FormControlLabel onChange={(e) => setUserPaid(e.target.value)} value={user.name} control={<Radio sx={{
+                        color: red[800],
+                      }}/>} label={user.name} />
+                    ))}
+                  </RadioGroup>
+                :
+                  <RadioGroup
+                    aria-labelledby="radio-group-label"
+                    style={{marginBottom: 10, marginLeft: 10}}
+                  >
+                    {Users.map(user => (
+                      <FormControlLabel onChange={(e) => setUserPaid(e.target.value)} value={user.name} control={<Radio />} label={user.name} />
+                    ))}
+                  </RadioGroup>
+                }
+                    
                 <FormLabel id="checkbox-group-label"> Shared Between: </FormLabel>
+
+                {friendsErr ?
+                <FormGroup aria-labelledby='checkbox-group-label'>
+                {friends.map((friend) => (
+                  <FormControlLabel 
+                      value={friend.name}
+                      onChange={(e) => handleFriendSelect(e.target, friend.name)}
+                      control={<Checkbox icon={<PersonOutlineOutlinedIcon color="error"/>}
+                      checkedIcon={<PersonAddIcon />}/>} 
+                      label={friend.name} />
+                  ))}
+              </FormGroup>
+                :
                 <FormGroup aria-labelledby='checkbox-group-label'>
                   {friends.map((friend) => (
                     <FormControlLabel 
@@ -252,12 +353,12 @@ const ExpenseList = () => {
                         label={friend.name} />
                     ))}
                 </FormGroup>
+                }
+                
                 {/* Add fields to enter expenses here */}
 
                 <Stack spacing={1} direction="row">
-                <Button color="error" variant="outlined" onClick={handleDrawerClose}>
-                Close
-                </Button>
+                
                 <Button variant="contained" type="submit">Add <AddIcon /></Button>
                 </Stack>
             </form>

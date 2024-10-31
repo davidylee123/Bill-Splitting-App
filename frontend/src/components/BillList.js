@@ -25,9 +25,12 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import FormGroup from '@mui/material/FormGroup';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 
 
 const drawerWidth = 240;
@@ -115,10 +118,11 @@ const BillList = () => {
 
     const [bills, setBills] = useState([{title: 'bill', friends: ['Adriana', 'Alan'], amount: '15.00', id: -2}, {title: 'different bill', friends: ['Andrew', 'Adriana'], amount: '2.00', id: -1}]);
     const [title, setTitle] = useState('');
-    //const [friend, setFriend] = useState('');
     const [expenses, setExpenses] = useState([]);
     const [friends, setFriends] = useState([{name: 'Andrew', included: false}, {name: 'Adriana', included: false}]);
     const [currID, setCurrID] = useState(0);
+    const [titleErr, setTitleErr] = useState(false);
+    const [friendsErr, setFriendsErr] = useState(false);
 
     const handleFriendSelect = (event, n) => {
       friends.map(f => {
@@ -147,18 +151,34 @@ const BillList = () => {
           if(f.included){
             billFriends.push(f.name);
           }
-        })
-        setBills([...bills, {id: currID, title: title, friends: billFriends, amount: "0.00"}]);
-        setTitle('');
-        const newBill = { title, expenses, friends};
-    
-        try {
-            const response = await axios.post('http://localhost:8080/api/bills', newBill);
-            alert('Bill created successfully!');
-            console.log(response.data);
-        } catch (error) {
-            console.error('There was an error creating the bill!', error);
+        });
+        
+        if(title.length < 1){
+          setTitleErr(true);
+        }else{
+          setTitleErr(false);
         }
+        if(billFriends.length < 1){
+          setFriendsErr(true);
+        }else{
+          setFriendsErr(false);
+        }
+
+        if(!titleErr && !friendsErr){
+          setBills([...bills, {id: currID, title: title, friends: billFriends, amount: "0.00"}]);
+          setTitle('');
+          setCurrID(currID+1);
+          const newBill = { title, expenses, friends};
+    
+          try {
+              const response = await axios.post('http://localhost:8080/api/bills', newBill);
+              alert('Bill created successfully!');
+              console.log(response.data);
+          } catch (error) {
+              console.error('There was an error creating the bill!', error);
+          }
+        }
+        
     };
 
     useEffect(() => {
@@ -175,10 +195,10 @@ const BillList = () => {
     }, []);
 
     return (
-        <div >
+        <div>
 
 {/* form Drawer */}
-<Box sx={{ display: 'flex' }}>
+<Box sx={{display: 'flex'}}>
 <AppBar position="fixed" open={open}>
         <Toolbar >
             <h2>Bill Splitting App</h2>
@@ -202,29 +222,58 @@ const BillList = () => {
         <Divider />
             <form onSubmit={handleSubmit}>
             <Stack spacing={1} direction="column">
+            <Stack spacing={1} direction="row">
             <h2 align="center">Create New Bill</h2>
+            <IconButton size="small" color="error" onClick={handleDrawerClose}>
+                <CloseIcon />
+            </IconButton>
+            </Stack>
             <Divider />
-                <TextField
+            {titleErr ? 
+            <TextField
+                    error
+                    helperText="Please enter a title for the bill."
                     variant="outlined"
                     placeholder="Bill Title"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                />
-                <FormGroup >
-                    
-                    {friends.map((friend) => (
-                    <FormControlLabel 
-                        value={friend.name}
-                        onChange={(e) => handleFriendSelect(e.target, friend.name)}
-                        control={<Checkbox />} 
-                        label={friend.name} />
-                    ))}
-                </FormGroup>
+                /> 
+                :
+                <TextField
+                variant="outlined"
+                placeholder="Bill Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+            />}
+
+            {friendsErr ?
+            <FormGroup >
+              {friends.map((friend) => (
+              <FormControlLabel 
+                
+                value={friend.included}
+                onChange={(e) => handleFriendSelect(e.target, friend.name)}
+                control={<Checkbox  icon={<PersonOutlineOutlinedIcon color="error"/>} 
+                checkedIcon={<PersonAddIcon />}/>}
+                label={friend.name} />
+              ))}
+            </FormGroup>
+            :
+            <FormGroup >
+              {friends.map((friend) => (
+              <FormControlLabel 
+                value={friend.included}
+                onChange={(e) => handleFriendSelect(e.target, friend.name)}
+                control={<Checkbox icon={<PersonOutlineOutlinedIcon />} 
+                checkedIcon={<PersonAddIcon />}/>}
+                label={friend.name} />
+              ))}
+            </FormGroup>
+            }
+                
                 </Stack>
-                <Stack spacing={1} direction="row">
-                <Button color="error" variant="outlined" onClick={handleDrawerClose}>
-                Close
-                </Button>
+                <Stack spacing={1} direction="column">
+                
                 <Button align="right" variant="contained" type="submit">Create Bill</Button>
                 </Stack>
 
