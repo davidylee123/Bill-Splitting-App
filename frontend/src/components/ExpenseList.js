@@ -189,7 +189,7 @@ const ExpenseList = () => {
         }
 
         let amountFormatted = amount.toFixed(2);
-        if(amount == '' || amount == NaN || amount < 0 || amount != amountFormatted){
+        if(amount === '' || isNaN(amount) || amount < 0 || amount !== amountFormatted){
           setAmountErr(true);
         }else{
           setAmountErr(false);

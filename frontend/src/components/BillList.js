@@ -83,10 +83,10 @@ const AppBar = styled(MuiAppBar, {
 
 
 const columns = [
-    { id: 'title', label: 'Title', minWidth: 50 },
-    { id: 'friends', label: 'Friends', minWidth: 50 },
-    { id: 'amount', label: 'Amount', minWidth: 50 },
-    { id: 'id', label: 'Edit', minWidth: 50 },
+    { id: 'title', label: 'Title', minWidth: 50, align: "left" },
+    { id: 'friends', label: 'Friends', minWidth: 50, align: "center" },
+    { id: 'amount', label: 'Amount', minWidth: 50, align: "center" },
+    { id: 'id', label: 'Edit', minWidth: 50, align: "right" },
   ];
 
 const BillList = () => {
