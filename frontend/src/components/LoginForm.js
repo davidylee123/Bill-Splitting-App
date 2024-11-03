@@ -76,7 +76,7 @@ const LoginForm = () => {
             </Stack>
             </CardContent>
             <CardActions>
-                <Button type="submit" variant="contained" fullWidth size="small">submit</Button>
+                <Button type="submit" variant="contained" fullWidth size="small">Login</Button>
             </CardActions>
         </Card>
         </form>

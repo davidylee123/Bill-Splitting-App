@@ -11,6 +11,7 @@ import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
@@ -24,13 +25,17 @@ import TextField from '@mui/material/TextField';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import FormGroup from '@mui/material/FormGroup';
-import AddCircleIcon from '@mui/icons-material/AddCircle';
+import AddIcon from '@mui/icons-material/Add';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
+import SearchIcon from '@mui/icons-material/Search';
+import InputAdornment from '@mui/material/InputAdornment';
+import DoneIcon from '@mui/icons-material/Done';
+import ErrorIcon from '@mui/icons-material/Error';
 
 
 const drawerWidth = 240;
@@ -125,6 +130,21 @@ const BillList = () => {
     const [currID, setCurrID] = useState(0);
     const [titleErr, setTitleErr] = useState(false);
     const [friendsErr, setFriendsErr] = useState(false);
+    const [addingFriend, setAddingFriend] = useState(false);
+    const [newFriend, setNewFriend] = useState('');
+    const [friendAddSuccess, setFriendAddSuccess] = useState(false);
+    const [friendAddErr, setFriendAddErr] = useState(false);
+
+    const handleFriendAdd = () => {
+      if(newFriend.length >= 2){
+        setFriends([...friends, {name: newFriend, included: false}]);
+        setNewFriend('');
+        setFriendAddSuccess(true);
+      }else{
+        setFriendAddErr(true);
+      }
+      
+    }
 
     const handleFriendSelect = (event, n) => {
       friends.map(f => {
@@ -203,9 +223,67 @@ const BillList = () => {
 <Box sx={{display: 'flex'}}>
 <AppBar position="fixed" open={open}>
         <Toolbar >
-            <h2>Bill Splitting App</h2>
+            <h2>Bill Splitting App</h2> 
+            <Button onClick={() => {setAddingFriend(true)}}
+            sx={[
+              {
+                bottom: 'auto',
+                right: 20,
+                top: 20,
+                left: 'auto',
+                position: 'fixed',
+              },
+              open && { display: 'none' },
+            ]}
+            color="inherit" variant="outlined">Add Friend<AddIcon /></Button>
         </Toolbar>
       </AppBar>
+      <Drawer
+            anchor='top'
+            open={addingFriend}
+            onClose={() => {setAddingFriend(false); setNewFriend('')}}
+          >
+            <Stack spacing={1} direction="row">
+            <TextField fullWidth 
+              placeholder="Enter your friend's username..."
+              value={newFriend}
+              onChange={(e) => setNewFriend(e.target.value)}
+              slotProps={{
+                input: {
+                  startAdornment: (<InputAdornment position="start"><SearchIcon /></InputAdornment>),
+                },
+              }}>
+                
+            </TextField >
+            <IconButton onClick={() => {handleFriendAdd()}} 
+              color="primary"><AddIcon /></IconButton>
+            </Stack>
+
+            {/* Add friend success notif */}
+            <Drawer
+              anchor='top'
+              open={friendAddSuccess}
+              onClose={() => {setFriendAddSuccess(false)}}
+            >
+            <Stack spacing={1} direction="row" sx={{ justifyContent: "center", alignItems: "center",}}>
+            <Typography variant="h6">Friend successfully added!</Typography> 
+            <DoneIcon color="success"/>
+            </Stack>
+            </Drawer>
+
+            {/* Add friend err notif */}
+            <Drawer
+              anchor='top'
+              open={friendAddErr}
+              onClose={() => {setFriendAddErr(false)}}
+            >
+            <Stack spacing={1} direction="row" sx={{ justifyContent: "center", alignItems: "center",}}>
+            <Typography variant="h6">Sorry! We couldn't find that user.</Typography> 
+            <ErrorIcon color="error"/>
+            </Stack>
+            </Drawer>
+
+          </Drawer>
 <Drawer
         sx={{
           width: drawerWidth,
@@ -368,7 +446,7 @@ const BillList = () => {
               open && { display: 'none' },
             ]}
           >
-            Create Bill <AddCircleIcon />
+            Create Bill <AddIcon />
           </Fab>
 
         </div>

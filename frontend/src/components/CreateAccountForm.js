@@ -92,7 +92,7 @@ const CreateAccountForm = () => {
             </Stack>
             </CardContent>
             <CardActions>
-                <Button type="submit" variant="contained" fullWidth size="small">submit</Button>
+                <Button type="submit" variant="contained" fullWidth size="small">Create Account</Button>
             </CardActions>
         </Card>
         </form>
