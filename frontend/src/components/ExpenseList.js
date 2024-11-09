@@ -9,6 +9,13 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
+import {
+  GridRowModes,
+  DataGrid,
+  GridToolbarContainer,
+  GridActionsCellItem,
+  GridRowEditStopReasons,
+} from '@mui/x-data-grid';
 
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
@@ -29,6 +36,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import FormGroup from '@mui/material/FormGroup';
 import InputAdornment from '@mui/material/InputAdornment';
+import Typography from '@mui/material/Typography';
 
 import { useLocation } from 'react-router-dom';
 import AddIcon from '@mui/icons-material/Add';
@@ -38,6 +46,9 @@ import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import CloseIcon from '@mui/icons-material/Close';
+import SaveIcon from '@mui/icons-material/Save';
+import CancelIcon from '@mui/icons-material/Close';
+import ErrorIcon from '@mui/icons-material/Error';
 
 import { red } from '@mui/material/colors';
 
@@ -89,13 +100,34 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
     ],
   }));
 
-const columns = [
-    { id: 'title', label: 'Title', minWidth: 50, align: 'left' },
-    { id: 'user', label: 'Paid By', minWidth: 50, align: 'center'},
-    { id: 'friends', label: 'Shared Between', minWidth: 50, align: 'center'},
-    { id: 'amount', label: 'Amount', minWidth: 50, align: 'center'},
-    { id: 'id', label: 'Actions', minWidth: 50, align: 'right' }
+// const columns = [
+//     { id: 'title', label: 'Title', minWidth: 50, align: 'left' },
+//     { id: 'user', label: 'Paid By', minWidth: 50, align: 'center'},
+//     { id: 'friends', label: 'Shared Between', minWidth: 50, align: 'center'},
+//     { id: 'amount', label: 'Amount', minWidth: 50, align: 'center'},
+//     { id: 'id', label: 'Actions', minWidth: 50, align: 'right' }
+//   ];
+
+
+
+
+
+  
+  
+  
+  
+  const initialRows = [
+    {
+      title: 'milk',
+      user: 'Andrew',
+      friends: [' Andrew', ' Adriana'],
+      split: '50/50',
+      amount: 2.55,
+      id: -1,
+    },
   ];
+
+
 
 
 const ExpenseList = () => {
@@ -115,61 +147,188 @@ const ExpenseList = () => {
     setAmountErr(false);
   };
 
-  //for table
-    const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
-    };
-
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(+event.target.value);
-        setPage(0);
-    };
-
-
-
-
-    const [Expenses, setExpenses] = useState([]);
+    const [Expenses, setExpenses] = useState(initialRows);
     const [title, setTitle] = useState('');
     const [amount, setAmount] = useState(null);
     const [userPaid, setUserPaid] = useState('');
-    const [friends, setFriends] = useState([{name: 'Andrew', included: false}, {name: 'Adriana', included: false}]);
-    const [Users, setUsers] = useState([{name: 'Andrew'},{name: 'Adriana'}]);
+    const [friends, setFriends] = useState([{name: 'Andrew', included: false, split: 50}, {name: 'Adriana', included: false, split: 50}]);
+    const [Users, setUsers] = useState(['Andrew','Adriana']);
     const [currID, setCurrID] = useState(0);
     const [titleErr, setTitleErr] = useState(false);
     const [friendsErr, setFriendsErr] = useState(false);
     const [paidErr, setPaidErr] = useState(false);
     const [amountErr, setAmountErr] = useState(false);
+    const [editErr, setEditErr] = useState(false);
+
+
+    const [rowModesModel, setRowModesModel] = React.useState({});
+  
+    const handleRowEditStop = (params, event) => {
+      if (params.reason === GridRowEditStopReasons.rowFocusOut) {
+        event.defaultMuiPrevented = true;
+      }
+    };
+  
+    const handleEditClick = (id) => () => {
+      setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.Edit } });
+    };
+  
+    const handleSaveClick = (id) => () => {
+      setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.View } });
+    };
+  
+    const handleDeleteClick = (id) => () => {
+      setExpenses(Expenses.filter((row) => row.id !== id));
+    };
+  
+    const handleCancelClick = (id) => () => {
+      setRowModesModel({
+        ...rowModesModel,
+        [id]: { mode: GridRowModes.View, ignoreModifications: true },
+      });
+    };
+  
+    const processRowUpdate = (newRow) => {
+      const updatedRow = { ...newRow, isNew: false };
+
+      if(updatedRow.title.length < 1){
+        setEditErr(true);
+        handleCancelClick(newRow.id);
+        return NaN;
+      }
+
+      setExpenses(Expenses.map((row) => (row.id === newRow.id ? updatedRow : row)));
+      return updatedRow;
+    };
+  
+    const handleRowModesModelChange = (newRowModesModel) => {
+      setRowModesModel(newRowModesModel);
+    };
+
+    const columns = [
+      { field: 'title', 
+        headerName: 'Title', 
+        flex: 0.8, 
+        align: 'left', 
+        headerAlign: 'left',
+        editable: true },
+      {
+        field: 'user',
+        headerName: 'Paid By',
+        flex: 1,
+        type: "singleSelect",
+        valueOptions: Users,
+        align: 'center',
+        headerAlign: 'center',
+        editable: true,
+      },
+      { field: 'friends', 
+        headerName: 'Shared Between', 
+        flex: 1, 
+        align: 'center',
+        headerAlign: 'center', 
+        editable: false,
+      },  
+      {
+        field: 'split',
+        headerName: 'Split',
+        flex: 1,
+        align: 'center',
+        headerAlign: 'center',
+        editable: true,
+      },
+      {
+        field: 'amount',
+        headerName: 'Amount',
+        type: 'number',
+        flex: 1,
+        align: 'center',
+        headerAlign: 'center',
+        editable: true,
+      },
+      {
+        field: 'id',
+        type: 'actions',
+        headerName: 'Actions',
+        flex: 0.8,
+        align: 'right',
+        headerAlign: 'right',
+        cellClassName: 'actions',
+        getActions: ({ id }) => {
+          const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
+  
+          if (isInEditMode) {
+            return [
+              <GridActionsCellItem
+                icon={<SaveIcon />}
+                label="Save"
+                sx={{
+                  color: 'primary.main',
+                }}
+                onClick={handleSaveClick(id)}
+              />,
+              <GridActionsCellItem
+                icon={<CancelIcon />}
+                label="Cancel"
+                className="textPrimary"
+                onClick={handleCancelClick(id)}
+                color="inherit"
+              />,
+            ];
+          }
+  
+          return [
+            <GridActionsCellItem
+              icon={<EditIcon />}
+              label="Edit"
+              className="textPrimary"
+              onClick={handleEditClick(id)}
+              color="inherit"
+            />,
+            <GridActionsCellItem
+              icon={<DeleteIcon />}
+              label="Delete"
+              onClick={handleDeleteClick(id)}
+              color="inherit"
+            />,
+          ];
+        },
+      },
+    ];
     
-    const handleFriendSelect = (event, n) => {
+    const handleFriendSelect = (n) => {
       friends.map(f => {
         if(f.name === n){
-          f.included = !f.included
+          f.included = !f.included;
         }   
       });
 
     };
 
-    const handleDelete = (n) => {
-      setExpenses(Expenses.filter((f) => f.id !== n));
-    }
-
-    const handleEdit = (n) => {
-      //setTitle(col.title);
-      //setAmount(col.amount);
-
-      setExpenses(Expenses.filter((f) => f.id !== n));
-    }
+    const handleSplit = (n, s) => {
+      friends.map(f => {
+        if(f.name === n){
+          f.split = s;
+        }   
+      })
+      setFriends(friends);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         let expenseFriends = [];
-        friends.map(f => {
+        let split = "";
+        friends.map((f,i) => {
           if(f.included){
             expenseFriends.push(f.name);
+            if(i == 0){
+              split += f.split;
+            }else{
+              split += "/" + f.split;
+            }
           }
+
         })
 
         if(title.length < 1){
@@ -188,18 +347,25 @@ const ExpenseList = () => {
           setPaidErr(false);
         }
 
-        let amountFormatted = amount.toFixed(2);
-        if(amount === '' || isNaN(amount) || amount < 0 || amount !== amountFormatted){
-          setAmountErr(true);
+        //THIS ISN'T WORKING FOR SOME REASON,
+        // it detects valid input as being invalid
+        let amountFormatted;
+        if(!isNaN(amount)){
+          amountFormatted = amount.toFixed(2);
         }else{
-          setAmountErr(false);
+          amountFormatted = 0.00;
         }
+        
+        //if(isNaN(amount) || amount < 0 || amount !== amountFormatted){
+        //  setAmountErr(true);
+        //}else{
+          setAmountErr(false);
+        //}
 
         if(!titleErr && !friendsErr && !paidErr && !amountErr){
-          
-          setExpenses([...Expenses, {id: currID, title: title, amount: amountFormatted, user: userPaid, friends: expenseFriends}]);
+          setExpenses([...Expenses, {id: currID, title: title, split: split, amount: amountFormatted, user: userPaid, friends: expenseFriends}]);
           setCurrID(currID+1);
-          setAmount(NaN);
+          //setAmount(NaN);
           setTitle('');
         }
         
@@ -228,6 +394,18 @@ const ExpenseList = () => {
             <h2>Bill Splitting App - {location}</h2>
         </Toolbar>
       </AppBar> 
+
+      <Drawer
+              anchor='top'
+              open={editErr}
+              onClose={() => {setEditErr(false)}}
+            >
+            <Stack spacing={1} direction="row" sx={{ justifyContent: "center", alignItems: "center",}}>
+            <Typography variant="h6">Could not save values, please enter a valid title.</Typography> 
+            <ErrorIcon color="error"/>
+            </Stack>
+            </Drawer>
+
 <Drawer
         sx={{
           width: drawerWidth,
@@ -317,9 +495,9 @@ const ExpenseList = () => {
                     style={{marginBottom: 10, marginLeft: 10}}
                   >
                     {Users.map(user => (
-                      <FormControlLabel onChange={(e) => setUserPaid(e.target.value)} value={user.name} control={<Radio sx={{
+                      <FormControlLabel onChange={(e) => setUserPaid(e.target.value)} value={user} control={<Radio sx={{
                         color: red[800],
-                      }}/>} label={user.name} />
+                      }}/>} label={user} />
                     ))}
                   </RadioGroup>
                 :
@@ -328,7 +506,7 @@ const ExpenseList = () => {
                     style={{marginBottom: 10, marginLeft: 10}}
                   >
                     {Users.map(user => (
-                      <FormControlLabel onChange={(e) => setUserPaid(e.target.value)} value={user.name} control={<Radio />} label={user.name} />
+                      <FormControlLabel onChange={(e) => setUserPaid(e.target.value)} value={user} control={<Radio />} label={user} />
                     ))}
                   </RadioGroup>
                 }
@@ -340,7 +518,7 @@ const ExpenseList = () => {
                 {friends.map((friend) => (
                   <FormControlLabel 
                       value={friend.name}
-                      onChange={(e) => handleFriendSelect(e.target, friend.name)}
+                      onChange={(e) => handleFriendSelect(friend.name)}
                       control={<Checkbox icon={<PersonOutlineOutlinedIcon color="error"/>}
                       checkedIcon={<PersonAddIcon />}/>} 
                       label={friend.name} />
@@ -349,12 +527,20 @@ const ExpenseList = () => {
                 :
                 <FormGroup aria-labelledby='checkbox-group-label'>
                   {friends.map((friend) => (
-                    <FormControlLabel 
+                    <Stack direction="row">
+                      <FormControlLabel 
                         value={friend.name}
-                        onChange={(e) => handleFriendSelect(e.target, friend.name)}
+                        onChange={(e) => handleFriendSelect(friend.name)}
                         control={<Checkbox icon={<PersonOutlineOutlinedIcon />}
                         checkedIcon={<PersonAddIcon />}/>} 
                         label={friend.name} />
+                    <TextField 
+                        type="number"
+                        //value={friend.split}
+                        onChange={(e) => handleSplit(friend.name, e.target.value)}
+                        placeholder="split">
+                    </TextField>
+                    </Stack>
                     ))}
                 </FormGroup>
                 }
@@ -363,74 +549,38 @@ const ExpenseList = () => {
 
                 <Stack spacing={1} direction="row">
                 
-                <Button variant="contained" type="submit">Add <AddIcon /></Button>
+                <Button fullWidth variant="contained" type="submit">Add Expense <AddIcon /></Button>
                 </Stack>
             </form>
       </Drawer>
       <Main open={open}>
 
-{/*MUI table component*/}
+{/* Data Grid Table */}
+<Box
+        sx={{
+          width: '100%',
+          '& .actions': {
+            color: 'text.secondary',
+          },
+          '& .textPrimary': {
+            color: 'text.primary',
+          },
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <Paper elevation="0" align="center"><h2>Expenses</h2></Paper>
+        <DataGrid
+          rows={Expenses}
+          columns={columns}
+          editMode="row"
+          rowModesModel={rowModesModel}
+          onRowModesModelChange={handleRowModesModelChange}
+          onRowEditStop={handleRowEditStop}
+          processRowUpdate={processRowUpdate}
+        />
+        </div>
+      </Box>
 
-            <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-              <TableContainer sx={{ maxHeight: 440 }}>
-                <Table stickyHeader aria-label="sticky table">
-                  <TableHead>
-                    <TableRow>
-                            <TableCell colSpan={5} align="center"><h2>Expenses</h2></TableCell>
-                    </TableRow>
-                    <TableRow>
-                      {columns.map((column) => (
-                        <TableCell
-                          key={column.id}
-                          align={column.align}
-                          style={{ minWidth: column.minWidth }}
-                        >
-                          {column.label}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {Expenses
-                      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                      .map((Expenses) => {
-                        return (
-                          <TableRow hover role="checkbox" tabIndex={-1} key={Expenses.code}>
-                            {columns.map((column) => {
-                              const value = Expenses[column.id];
-                              return (
-                                <TableCell key={column.id} align={column.align}>
-                                  {column.id === 'friends' 
-                                    ? value.map((friend, i) => (
-                                      i == 0 ?
-                                      friend :
-                                      ", " + friend
-                                    ))
-                                    : column.id === 'id' 
-                                    ? <>
-                                    <IconButton onClick={() => handleEdit(value)} color="warning"><EditIcon /></IconButton>
-                                    <IconButton onClick={() => handleDelete(value)} color="error"><DeleteIcon /></IconButton>
-                                    </>
-                                    :value}
-                                </TableCell>
-                              );
-                            })}
-                          </TableRow>
-                        );
-                      })}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <TablePagination
-                rowsPerPageOptions={[10, 25, 100]}
-                component="div"
-                count={Expenses.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-              />
-            </Paper>
 </Main>
 </Box>
 

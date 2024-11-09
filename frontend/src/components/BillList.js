@@ -256,7 +256,12 @@ const BillList = () => {
                 
             </TextField >
             <IconButton onClick={() => {handleFriendAdd()}} 
-              color="primary"><AddIcon /></IconButton>
+              color="primary"><AddIcon />
+            </IconButton>
+            <Divider orientation="vertical" flexItem/>
+            <IconButton color="error" onClick={() => {setAddingFriend(false); setNewFriend('')}}>
+                <CloseIcon />
+            </IconButton>
             </Stack>
 
             {/* Add friend success notif */}
