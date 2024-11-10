@@ -10,9 +10,9 @@ import java.util.List;
 @Document(collection = "bills")
 public class Bill {
     @Id
-    private String _id;
     private String id;
     private String title;
     private List<Expense> expenses;
     private List<User> users;
+
 }

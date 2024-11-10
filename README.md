@@ -44,17 +44,13 @@ To get a copy of the project up and running on your local machine, follow the in
    ```bash
    git clone https://github.com/yourusername/bill-splitting-app.git
    cd bill-splitting-app/backend
-
    ```
 
 2. **Configure MongoDB**:
 
    ````bash
    Ensure MongoDB is running locally or provide your MongoDB URI. Update the application.properties file in the src/main/resources/ folder with the MongoDB connection details:
-   *In MongoDB Atlas*
-   ```bash
    spring.data.mongodb.uri=mongodb+srv://<username>:<password>@cluster0.mongodb.net/billsplitter?retryWrites=true&w=majority
-
    ````
 
 3. **Build and run the backend**:
@@ -69,14 +65,12 @@ To get a copy of the project up and running on your local machine, follow the in
 
    ```bash
    cd ../frontend
-
    ```
 
 2. **Install dependencies**:
 
    ```bash
    npm install
-
    ```
 
 3. **Run the frontend server**:
@@ -99,17 +93,25 @@ The backend exposes the following REST API endpoints:
 
 ### Users
 
-- `GET /users` - Get all users
-- `POST /users` - Create a new user
-- `GET /users/{id}` - Get a user by ID
+- `GET /api/users` - Retrieve all users
+- `POST /api/users` - Create a new user
+- `GET /api/users/{id}` - Retrieve a user by ID
+- `PUT /api/users/{id}` - Update user information by ID
+- `DELETE /api/users/{id}` - Delete a user by ID
 
 ### Bills
 
-- `GET /bills` - Get all bills
-- `POST /bills` - Create a new bill
-- `GET /bills/{id}` - Get a bill by ID
+- `GET /api/bills` - Retrieve all bills
+- `POST /api/bills` - Create a new bill
+- `GET /api/bills/{id}` - Retrieve a bill by ID
+- `PUT /api/bills/{id}` - Update a bill by ID
+- `DELETE /api/bills/{id}` - Delete a bill by ID
 
 ### Expenses
 
-- `POST /bills/{billId}/expenses` - Add an expense to a bill
-- `GET /bills/{billId}/expenses` - Get all expenses for a bill
+- `POST /api/expenses` - Create a new expense
+- `GET /api/expenses` - Retrieve all expenses
+- `GET /api/expenses/{id}` - Retrieve an expense by ID
+- `PUT /api/expenses/{id}` - Update an expense by ID
+- `DELETE /api/expenses/{id}` - Delete an expense by ID
+- `GET /api/expenses/customId/{customId}` - Retrieve an expense by custom ID

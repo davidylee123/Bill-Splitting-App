@@ -22,8 +22,30 @@ public class ExpenseService {
         return expenseRepository.save(expense);
     }
 
+    // Find by MongoDB ID (_id)
     public Optional<Expense> getExpenseById(String id) {
         return expenseRepository.findById(id);
+    }
+
+    // Find by custom ID field
+    public Optional<Expense> getExpenseByCustomId(String customId) {
+        return expenseRepository.findByCustomId(customId);
+    }
+
+    public List<Expense> findByPaidBy(String paidBy) {
+        return expenseRepository.findByPaidBy(paidBy);
+    }
+
+    public List<Expense> findBySplitBetween(List<String> splitBetweenUsers) {
+        return expenseRepository.findBySplitBetween(splitBetweenUsers);
+    }
+
+    public List<Expense> findByAmount(double amount) {
+        return expenseRepository.findByAmount(amount);
+    }
+
+    public List<Expense> findByName(String name) {
+        return expenseRepository.findByName(name);
     }
 
     public Optional<Expense> updateExpense(String id, Expense expenseDetails) {
