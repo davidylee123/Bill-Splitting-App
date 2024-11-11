@@ -12,10 +12,11 @@ import TableRow from '@mui/material/TableRow';
 import {
   GridRowModes,
   DataGrid,
-  GridToolbarContainer,
+  useGridApiContext,
   GridActionsCellItem,
   GridRowEditStopReasons,
 } from '@mui/x-data-grid';
+import { unstable_useEnhancedEffect as useEnhancedEffect } from '@mui/utils';
 
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
@@ -29,6 +30,9 @@ import { styled, useTheme } from '@mui/material/styles';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormLabel from '@mui/material/FormLabel';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
 
 import Fab from '@mui/material/Fab';
 import TextField from '@mui/material/TextField';
@@ -120,7 +124,7 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
     {
       title: 'milk',
       user: 'Andrew',
-      friends: [' Andrew', ' Adriana'],
+      friends: ['Andrew', 'Adriana'],
       split: '50/50',
       amount: 2.55,
       id: -1,
@@ -143,7 +147,6 @@ const ExpenseList = () => {
     setOpen(false);
     setTitleErr(false);
     setFriendsErr(false);
-    setPaidErr(false);
     setAmountErr(false);
   };
 
@@ -153,11 +156,11 @@ const ExpenseList = () => {
     const [amount, setAmount] = useState(null);
     const [userPaid, setUserPaid] = useState('');
     const [friends, setFriends] = useState([{name: 'Andrew', included: false, split: 50}, {name: 'Adriana', included: false, split: 50}]);
+    const [editFriendsList, setEditFriendsList] = useState([]);
     const [Users, setUsers] = useState(['Andrew','Adriana']);
     const [currID, setCurrID] = useState(0);
     const [titleErr, setTitleErr] = useState(false);
     const [friendsErr, setFriendsErr] = useState(false);
-    const [paidErr, setPaidErr] = useState(false);
     const [amountErr, setAmountErr] = useState(false);
     const [editErr, setEditErr] = useState(false);
     const [splitErr, setSplitErr] = useState(false);
@@ -194,9 +197,39 @@ const ExpenseList = () => {
       const updatedRow = { ...newRow, isNew: false };
 
       //client-side editing validation:
-      if(updatedRow.title.length < 1){
-        setEditErr(true);
+      let err = false;
+
+      let fTitle = validTitle(updatedRow.title);
+      if(fTitle == null){
+        err = true;
         setTitleErr(true);
+      }else{
+        setTitleErr(false);
+      }
+      let fSplit = validSplit(updatedRow.split);
+      if(fSplit == null){
+        err = true;
+        setSplitErr(true);
+      }else{
+        setSplitErr(false);
+      }
+      let fAmount = validAmount(updatedRow.amount);
+      if(fAmount == null){
+        err = true;
+        setAmountErr(true);
+      }else{
+        setAmountErr(false);
+      }
+      let fFriends = validFriendsShared(updatedRow.friends);
+      if(fFriends == null){
+        err = true;
+        setFriendsErr(true);
+      }else{
+        setFriendsErr(false);
+      }  
+
+      if(err){
+        setEditErr(true);
         handleCancelClick(newRow.id);
         return NaN;
       }
@@ -207,6 +240,82 @@ const ExpenseList = () => {
   
     const handleRowModesModelChange = (newRowModesModel) => {
       setRowModesModel(newRowModesModel);
+    };
+
+    function renderMultipleSelect(params) {
+      //NOT WORKING
+      // this sets all of the expenses to have the same shared between list
+      let frnds = editFriendsList;
+      // Expenses.map((exp) => {
+      //     if(params.id == exp.id){
+      //       frnds = exp.friends;
+      //     } 
+      //   })
+      
+      return (<Select
+        multiple
+        fullWidth
+        readOnly
+        value={frnds}
+        input={<OutlinedInput />}
+      >
+        {Users.map((user) => (
+          <MenuItem
+            key={user}
+            value={user}
+          >
+            {user}
+          </MenuItem>
+        ))}
+    </Select>);
+    }
+
+    function MultipleSelectEditInputCell(props) {
+      const { id, value, field, hasFocus } = props;
+      const apiRef = useGridApiContext();
+      const ref = React.useRef(null);
+      
+      const handleEditFriendsSelect = (event, newValue) => {
+        const {
+          target: { value },
+        } = event;
+        setEditFriendsList(
+          // On autofill we get a stringified value.
+          typeof value === 'string' ? value.split(',') : value,
+        );
+        apiRef.current.setEditCellValue({ id, field, value: newValue });
+      }
+
+      useEnhancedEffect(() => {
+        if (hasFocus && ref.current) {
+          const input = ref.current.querySelector(`input[value="${value}"]`);
+          input?.focus();
+        }
+      }, [hasFocus, value]);
+    
+    
+      return (
+        <Select
+          multiple
+          fullWidth
+          value={editFriendsList}
+          onChange={handleEditFriendsSelect}
+          input={<OutlinedInput />}
+        >
+          {Users.map((user) => (
+            <MenuItem
+              key={user}
+              value={user}
+            >
+              {user}
+            </MenuItem>
+          ))}
+      </Select>
+      );
+    }
+    
+    const renderMultipleSelectEditInputCell = (params) => {
+      return <MultipleSelectEditInputCell {...params}/>;
     };
 
     const columns = [
@@ -231,7 +340,9 @@ const ExpenseList = () => {
         flex: 1, 
         align: 'center',
         headerAlign: 'center', 
-        editable: false,
+        editable: true,
+        renderCell: renderMultipleSelect,
+        renderEditCell: renderMultipleSelectEditInputCell,
       },  
       {
         field: 'split',
@@ -318,50 +429,55 @@ const ExpenseList = () => {
       setFriends(friends);
     };
 
-    //TODO: MOVE VALIDATION TO FUNCTIONS
+    //SUMBITTING VALIDATION FUNCTIONS
+    const validTitle = (t) => {
+      if(t == null){
+        t = title;
+      }
 
-    const validTitle = () => {
-      if(title.length < 1){
+      if(t.length < 1){
         return null;
       }else{
-        return title;
+        return t;
       }
     }
 
-    const validUserPaid = () => {
-      if(userPaid.length < 1){
-        return null;
-      }else{
-        return userPaid;
-      }
-    }
+    const validFriendsShared = (f) => {
+      if(f == null){
+        let expenseFriends = [];
+        friends.map((fr) => {
+          if(fr.included){
+            expenseFriends.push(fr.name);
+          }
 
-    const validFriendsShared = () => {
-      let expenseFriends = [];
-      friends.map((f,i) => {
-        if(f.included){
-          expenseFriends.push(f.name);
+        })
+
+        if(expenseFriends.length < 1){
+          return null;
+        }else{
+          return expenseFriends;
         }
-
-      })
-
-      if(expenseFriends.length < 1){
-        return null;
       }else{
-        return expenseFriends;
+        //handle editing
+        return f;
       }
-
     }
 
-    const validSplit = () => {
+    const validSplit = (s) => {
       let splitDisplay = "";
       let splitArr =[];
-      friends.map((f,i) => {
-        if(f.included){
-          splitArr.push(f.split);
-        }
+      if(s == null){
+        friends.map((f) => {
+          if(f.included){
+            splitArr.push(f.split);
+          }
 
-      })
+        })
+      }else{
+        //s is a plain string, format it into an array, elements separated by "/"
+        return "50/50";
+      }
+      
 
       let sum = 0;
       let negative = false;
@@ -400,15 +516,18 @@ const ExpenseList = () => {
       }
     }
 
-    const validAmount = () => {
+    const validAmount = (a) => {
+      if(a == null){
+        a = amount;
+      }
       let amountFormatted;
-      if(!isNaN(amount) && amount !== null){
-        amountFormatted = amount.toFixed(2);
+      if(!isNaN(a) && a !== null){
+        amountFormatted = a.toFixed(2);
       }else{
         return null;
       }
         
-      if(amountFormatted < 0 || amount != amountFormatted){
+      if(amountFormatted < 0 || a != amountFormatted){
         return null;
       }else{
         return amountFormatted;
@@ -422,35 +541,29 @@ const ExpenseList = () => {
         let err = false;
 
         //A whole bunch of client-side validation
-        let fTitle = validTitle();
+        let fTitle = validTitle(null);
         if(fTitle == null){
           err = true;
           setTitleErr(true);
         }else{
           setTitleErr(false);
         }
-        let fSplit = validSplit();
+        let fSplit = validSplit(null);
         if(fSplit == null){
           err = true;
           setSplitErr(true);
         }else{
           setSplitErr(false);
         }
-        let fAmount = validAmount();
+        let fAmount = validAmount(null);
         if(fAmount == null){
           err = true;
           setAmountErr(true);
         }else{
           setAmountErr(false);
         }
-        let fUser = validUserPaid();
-        if(fUser == null){
-          err = true;
-          setPaidErr(true);
-        }else{
-          setPaidErr(false);
-        }
-        let fFriends = validFriendsShared();
+        let fUser = userPaid;
+        let fFriends = validFriendsShared(null);
         if(fFriends == null){
           err = true;
           setFriendsErr(true);
@@ -497,7 +610,18 @@ const ExpenseList = () => {
               onClose={() => {setEditErr(false)}}
             >
             <Stack spacing={1} direction="row" sx={{ justifyContent: "center", alignItems: "center",}}>
+
+            {titleErr ?
             <Typography variant="h6">Could not save values, please enter a valid title.</Typography> 
+            : friendsErr ?
+            <Typography variant="h6">Could not save values, please enter a valid list of friends.</Typography>
+            : splitErr ?
+            <Typography variant="h6">Could not save values, please enter a valid split.</Typography>
+            : amountErr ?
+            <Typography variant="h6">Could not save values, please enter a valid amount.</Typography>
+            :
+            <Typography variant="h6">Could not save values.</Typography>
+            }
             <ErrorIcon color="error"/>
             </Stack>
             </Drawer>
@@ -585,27 +709,14 @@ const ExpenseList = () => {
                 <Divider />
                 <br /> 
                 <FormLabel id="radio-group-label">Paid By:</FormLabel>
-                {paidErr ?
                   <RadioGroup
                     aria-labelledby="radio-group-label"
                     style={{marginBottom: 10, marginLeft: 10}}
                   >
-                    {Users.map(user => (
-                      <FormControlLabel onChange={(e) => setUserPaid(e.target.value)} value={user} control={<Radio sx={{
-                        color: red[800],
-                      }}/>} label={user} />
+                    {Users.map((user, i) => (
+                      <FormControlLabel defaultChecked={i == 0} onChange={(e) => setUserPaid(e.target.value)} value={user} control={<Radio />} label={user} />
                     ))}
                   </RadioGroup>
-                :
-                  <RadioGroup
-                    aria-labelledby="radio-group-label"
-                    style={{marginBottom: 10, marginLeft: 10}}
-                  >
-                    {Users.map(user => (
-                      <FormControlLabel onChange={(e) => setUserPaid(e.target.value)} value={user} control={<Radio />} label={user} />
-                    ))}
-                  </RadioGroup>
-                }
                     
                 <FormLabel id="checkbox-group-label"> Shared Between: </FormLabel>
 

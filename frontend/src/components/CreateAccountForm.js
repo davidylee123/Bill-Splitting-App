@@ -13,34 +13,48 @@ import Stack from '@mui/material/Stack';
 
 const CreateAccountForm = () => {
     const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [rPass, setRPass] = useState('');
     const [usernameErr, setUsernameErr] = useState(false);
+    const [emailErr, setEmailErr] = useState(false);
     const [passwordErr, setPasswordErr] = useState(false);
     const [passMatchErr, setPassMatchErr] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        let err = false;
         //do some client-side validation
         if(username.length<2){
             setUsernameErr(true);
+            err = true;
         }else{
             setUsernameErr(false);
         }
+        //add email formatting checking in the future
+        if(email.length<2){
+            setEmailErr(true);
+            err = true;
+        }else{
+            setEmailErr(false);
+        }
         if(password.length < 6 || password.length > 32){
             setPasswordErr(true);
+            err = true;
         }else{
             setPasswordErr(false);
         }
         if(password.localeCompare(rPass) != 0){
             setPassMatchErr(true);
+            err = true;
         }else{
             setPassMatchErr(false);
         }
 
-        if(!usernameErr && !passwordErr && !passMatchErr){
+        if(!err){
           
           setUsername('');
+          setEmail('');
           setPassword('');
           setRPass('');
           const newAccount = { username, password};
@@ -71,6 +85,14 @@ const CreateAccountForm = () => {
                     value={username} label="Username"/>
             :
                 <TextField value={username} label="Username" onChange={(e) => setUsername(e.target.value)}/>
+            }
+            {emailErr ?
+                <TextField error 
+                    helperText="Invalid email" 
+                    onChange={(e) => setEmail(e.target.value)}
+                    value={email} label="Email"/>
+            :
+                <TextField value={email} label="Email" onChange={(e) => setEmail(e.target.value)}/>
             }
             {passwordErr ?
             <TextField error 
