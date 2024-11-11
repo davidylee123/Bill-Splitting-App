@@ -160,6 +160,7 @@ const ExpenseList = () => {
     const [paidErr, setPaidErr] = useState(false);
     const [amountErr, setAmountErr] = useState(false);
     const [editErr, setEditErr] = useState(false);
+    const [splitErr, setSplitErr] = useState(false);
 
 
     const [rowModesModel, setRowModesModel] = React.useState({});
@@ -192,8 +193,10 @@ const ExpenseList = () => {
     const processRowUpdate = (newRow) => {
       const updatedRow = { ...newRow, isNew: false };
 
+      //client-side editing validation:
       if(updatedRow.title.length < 1){
         setEditErr(true);
+        setTitleErr(true);
         handleCancelClick(newRow.id);
         return NaN;
       }
@@ -315,57 +318,150 @@ const ExpenseList = () => {
       setFriends(friends);
     };
 
+    //TODO: MOVE VALIDATION TO FUNCTIONS
+
+    const validTitle = () => {
+      if(title.length < 1){
+        return null;
+      }else{
+        return title;
+      }
+    }
+
+    const validUserPaid = () => {
+      if(userPaid.length < 1){
+        return null;
+      }else{
+        return userPaid;
+      }
+    }
+
+    const validFriendsShared = () => {
+      let expenseFriends = [];
+      friends.map((f,i) => {
+        if(f.included){
+          expenseFriends.push(f.name);
+        }
+
+      })
+
+      if(expenseFriends.length < 1){
+        return null;
+      }else{
+        return expenseFriends;
+      }
+
+    }
+
+    const validSplit = () => {
+      let splitDisplay = "";
+      let splitArr =[];
+      friends.map((f,i) => {
+        if(f.included){
+          splitArr.push(f.split);
+        }
+
+      })
+
+      let sum = 0;
+      let negative = false;
+      splitArr.forEach((s) => {
+        sum+=s;
+        if(s < 0){
+          negative = true;
+        }
+      })
+
+      if(negative){
+        return null;
+      }
+
+      if(sum == 1){
+        splitArr.forEach((s,i) => {
+          s*=100;
+          if(i == 0){
+            splitDisplay += "" + s;
+          }else{
+            splitDisplay += "/" + s;
+          }
+        })
+        return splitDisplay;
+      }else if(sum != 100){
+        return null;
+      }else{
+        splitArr.forEach((s,i) => {
+          if(i == 0){
+            splitDisplay += "" + s;
+          }else{
+            splitDisplay += "/" + s;
+          }
+        })
+        return splitDisplay;
+      }
+    }
+
+    const validAmount = () => {
+      let amountFormatted;
+      if(!isNaN(amount) && amount !== null){
+        amountFormatted = amount.toFixed(2);
+      }else{
+        return null;
+      }
+        
+      if(amountFormatted < 0 || amount != amountFormatted){
+        return null;
+      }else{
+        return amountFormatted;
+      }
+    }
+
+
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        let expenseFriends = [];
-        let split = "";
-        friends.map((f,i) => {
-          if(f.included){
-            expenseFriends.push(f.name);
-            if(i == 0){
-              split += f.split;
-            }else{
-              split += "/" + f.split;
-            }
-          }
+        let err = false;
 
-        })
-
-        if(title.length < 1){
+        //A whole bunch of client-side validation
+        let fTitle = validTitle();
+        if(fTitle == null){
+          err = true;
           setTitleErr(true);
         }else{
           setTitleErr(false);
         }
-        if(expenseFriends.length < 1){
-          setFriendsErr(true);
+        let fSplit = validSplit();
+        if(fSplit == null){
+          err = true;
+          setSplitErr(true);
         }else{
-          setFriendsErr(false);
+          setSplitErr(false);
         }
-        if(userPaid.length < 1){
+        let fAmount = validAmount();
+        if(fAmount == null){
+          err = true;
+          setAmountErr(true);
+        }else{
+          setAmountErr(false);
+        }
+        let fUser = validUserPaid();
+        if(fUser == null){
+          err = true;
           setPaidErr(true);
         }else{
           setPaidErr(false);
         }
-
-        //THIS ISN'T WORKING FOR SOME REASON,
-        // it detects valid input as being invalid
-        let amountFormatted;
-        if(!isNaN(amount)){
-          amountFormatted = amount.toFixed(2);
+        let fFriends = validFriendsShared();
+        if(fFriends == null){
+          err = true;
+          setFriendsErr(true);
         }else{
-          amountFormatted = 0.00;
+          setFriendsErr(false);
         }
-        
-        //if(isNaN(amount) || amount < 0 || amount !== amountFormatted){
-        //  setAmountErr(true);
-        //}else{
-          setAmountErr(false);
-        //}
 
-        if(!titleErr && !friendsErr && !paidErr && !amountErr){
-          setExpenses([...Expenses, {id: currID, title: title, split: split, amount: amountFormatted, user: userPaid, friends: expenseFriends}]);
+        if(!err){
+          setExpenses([...Expenses, {id: currID, title: fTitle, split: fSplit, amount: fAmount, user: fUser, friends: fFriends}]);
           setCurrID(currID+1);
-          //setAmount(NaN);
+          setAmount(NaN);
           setTitle('');
         }
         
@@ -516,12 +612,29 @@ const ExpenseList = () => {
                 {friendsErr ?
                 <FormGroup aria-labelledby='checkbox-group-label'>
                 {friends.map((friend) => (
+                  <Stack direction="row">
                   <FormControlLabel 
                       value={friend.name}
                       onChange={(e) => handleFriendSelect(friend.name)}
                       control={<Checkbox icon={<PersonOutlineOutlinedIcon color="error"/>}
                       checkedIcon={<PersonAddIcon />}/>} 
                       label={friend.name} />
+                      {splitErr ?
+                        <TextField 
+                        type="number"
+                        error
+                        helperText="Split must add up to 100 for all included members"
+                        onChange={(e) => handleSplit(friend.name, e.target.valueAsNumber)}
+                        placeholder="split">
+                    </TextField>
+                        :
+                        <TextField 
+                            type="number"
+                            onChange={(e) => handleSplit(friend.name, e.target.valueAsNumber)}
+                            placeholder="split">
+                        </TextField>
+                        }
+                    </Stack>
                   ))}
               </FormGroup>
                 :
@@ -534,12 +647,21 @@ const ExpenseList = () => {
                         control={<Checkbox icon={<PersonOutlineOutlinedIcon />}
                         checkedIcon={<PersonAddIcon />}/>} 
                         label={friend.name} />
+                    {splitErr ?
+                    <TextField 
+                    type="number"
+                    error
+                    helperText="Split must add up to 100 for all included members"
+                    onChange={(e) => handleSplit(friend.name, e.target.valueAsNumber)}
+                    placeholder="split">
+                </TextField>
+                    :
                     <TextField 
                         type="number"
-                        //value={friend.split}
-                        onChange={(e) => handleSplit(friend.name, e.target.value)}
+                        onChange={(e) => handleSplit(friend.name, e.target.valueAsNumber)}
                         placeholder="split">
                     </TextField>
+                    }
                     </Stack>
                     ))}
                 </FormGroup>
