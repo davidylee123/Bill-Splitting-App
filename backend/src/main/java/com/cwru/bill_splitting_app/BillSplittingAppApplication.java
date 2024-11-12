@@ -9,5 +9,4 @@ public class BillSplittingAppApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(BillSplittingAppApplication.class, args);
 	}
-
 }
