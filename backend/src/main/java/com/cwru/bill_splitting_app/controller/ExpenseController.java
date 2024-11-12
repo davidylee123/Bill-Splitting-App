@@ -23,12 +23,23 @@ public class ExpenseController {
 
     @PostMapping
     public ResponseEntity<Expense> createExpense(@RequestBody Expense expense) {
-        return ResponseEntity.ok(expenseService.createExpense(expense));
+        if (expense.getId() != null && expenseService.getExpenseByCustomId(expense.getId()).isPresent()) {
+            throw new IllegalArgumentException("Expense with this custom ID already exists");
+        }
+        Expense createdExpense = expenseService.createExpense(expense);
+        return ResponseEntity.ok(createdExpense);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Expense> getExpenseById(@PathVariable String id) {
         Optional<Expense> expense = expenseService.getExpenseById(id);
+        return expense.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/customId/{customId}")
+    public ResponseEntity<Expense> getExpenseByCustomId(@PathVariable String customId) {
+        Optional<Expense> expense = expenseService.getExpenseByCustomId(customId);
         return expense.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -47,5 +58,10 @@ public class ExpenseController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
     }
 }
