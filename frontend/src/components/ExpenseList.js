@@ -220,13 +220,13 @@ const ExpenseList = () => {
       }else{
         setAmountErr(false);
       }
-      let fFriends = validFriendsShared(updatedRow.friends);
-      if(fFriends == null){
-        err = true;
-        setFriendsErr(true);
-      }else{
-        setFriendsErr(false);
-      }  
+      let fFriends = updatedRow.friends;
+      // if(fFriends == null){
+      //   err = true;
+      //   setFriendsErr(true);
+      // }else{
+      //   setFriendsErr(false);
+      // }  
 
       if(err){
         setEditErr(true);
@@ -245,6 +245,7 @@ const ExpenseList = () => {
     function renderMultipleSelect(params) {
       //NOT WORKING
       // this sets all of the expenses to have the same shared between list
+      // the reason I can't get this to work has to do with some errors where somehow the value of the multiple select is becoming not an array, an it needs to always be an array
       let frnds = editFriendsList;
       // Expenses.map((exp) => {
       //     if(params.id == exp.id){
