@@ -15,4 +15,12 @@ public class Bill {
     private List<Expense> expenses;
     private List<User> users;
 
+    public Bill(String id, String title, List<Expense> expenses, List<User> users) {
+        this.id = id;
+        this.title = title;
+        this.expenses = expenses;
+        this.users = users;
+    }
+
+    public Bill() {}
 }
