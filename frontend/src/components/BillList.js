@@ -36,56 +36,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import InputAdornment from '@mui/material/InputAdornment';
 import DoneIcon from '@mui/icons-material/Done';
 import ErrorIcon from '@mui/icons-material/Error';
-
-
-const drawerWidth = 240;
-
-const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
-    ({ theme }) => ({
-      flexGrow: 1,
-      padding: theme.spacing(3),
-      transition: theme.transitions.create('margin', {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen,
-      }),
-      marginLeft: `-${drawerWidth}px`,
-      variants: [
-        {
-          props: ({ open }) => open,
-          style: {
-            transition: theme.transitions.create('margin', {
-              easing: theme.transitions.easing.easeOut,
-              duration: theme.transitions.duration.enteringScreen,
-            }),
-            marginLeft: 0,
-          },
-        },
-      ],
-    }),
-  );
-
-const AppBar = styled(MuiAppBar, {
-    shouldForwardProp: (prop) => prop !== 'open',
-  })(({ theme }) => ({
-    transition: theme.transitions.create(['margin', 'width'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    variants: [
-      {
-        props: ({ open }) => open,
-        style: {
-          width: `calc(100% - ${drawerWidth}px)`,
-          marginLeft: `${drawerWidth}px`,
-          transition: theme.transitions.create(['margin', 'width'], {
-            easing: theme.transitions.easing.easeOut,
-            duration: theme.transitions.duration.enteringScreen,
-          }),
-        },
-      },
-    ],
-  }));
-
+import {Main, AppBar, drawerWidth} from '../Theme';
 
 const columns = [
     { id: 'title', label: 'Title', minWidth: 50, align: "left" },
@@ -107,7 +58,6 @@ const BillList = () => {
         setTitleErr(false);
         setFriendsErr(false);
       };
-
 
     //for table
     const [page, setPage] = React.useState(0);
@@ -219,7 +169,9 @@ const BillList = () => {
     return (
         <div>
 
-{/* form Drawer */}
+/*
+ * Add Friend Form
+ */
 <Box sx={{display: 'flex'}}>
 <AppBar position="fixed" open={open}>
         <Toolbar >
@@ -289,6 +241,8 @@ const BillList = () => {
             </Drawer>
 
           </Drawer>
+
+{/* Create New Bill Form */}
 <Drawer
         sx={{
           width: drawerWidth,
@@ -364,9 +318,9 @@ const BillList = () => {
 
             </form>
       </Drawer>
-      <Main open={open}>
-{/* MUI Table Component*/}
 
+{/* Bill List View */}
+      <Main open={open}>
             <Paper sx={{ width: '100%', overflow: 'hidden' }}>
               <TableContainer sx={{ maxHeight: 440 }}>
                 <Table stickyHeader aria-label="sticky table">

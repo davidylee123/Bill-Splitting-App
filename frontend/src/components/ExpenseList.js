@@ -53,56 +53,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Close';
 import ErrorIcon from '@mui/icons-material/Error';
-
 import { red } from '@mui/material/colors';
-
-const drawerWidth = 240;
-
-const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
-    ({ theme }) => ({
-      flexGrow: 1,
-      padding: theme.spacing(3),
-      transition: theme.transitions.create('margin', {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen,
-      }),
-      marginLeft: `-${drawerWidth}px`,
-      variants: [
-        {
-          props: ({ open }) => open,
-          style: {
-            transition: theme.transitions.create('margin', {
-              easing: theme.transitions.easing.easeOut,
-              duration: theme.transitions.duration.enteringScreen,
-            }),
-            marginLeft: 0,
-          },
-        },
-      ],
-    }),
-  );
-
-  const AppBar = styled(MuiAppBar, {
-    shouldForwardProp: (prop) => prop !== 'open',
-  })(({ theme }) => ({
-    transition: theme.transitions.create(['margin', 'width'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    variants: [
-      {
-        props: ({ open }) => open,
-        style: {
-          width: `calc(100% - ${drawerWidth}px)`,
-          marginLeft: `${drawerWidth}px`,
-          transition: theme.transitions.create(['margin', 'width'], {
-            easing: theme.transitions.easing.easeOut,
-            duration: theme.transitions.duration.enteringScreen,
-          }),
-        },
-      },
-    ],
-  }));
+import {Main, AppBar, drawerWidth} from '../Theme';
 
 // const columns = [
 //     { id: 'title', label: 'Title', minWidth: 50, align: 'left' },
@@ -111,28 +63,18 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
 //     { id: 'amount', label: 'Amount', minWidth: 50, align: 'center'},
 //     { id: 'id', label: 'Actions', minWidth: 50, align: 'right' }
 //   ];
-
-
-
-
-
   
-  
-  
-  
-  const initialRows = [
-    {
-      title: 'milk',
-      user: 'Andrew',
-      friends: ['Andrew', 'Adriana'],
-      split: '50/50',
-      amount: 2.55,
-      id: -1,
-    },
-  ];
-
-
-
+// remove before production
+const initialRows = [
+  {
+    title: 'milk',
+    user: 'Andrew',
+    friends: ['Andrew', 'Adriana'],
+    split: '50/50',
+    amount: 2.55,
+    id: -1,
+  },
+];
 
 const ExpenseList = () => {
   let location = String(useLocation().pathname).substring(1);
@@ -597,7 +539,7 @@ const ExpenseList = () => {
     return (
         <div>
 
-{/* form Drawer */}
+{/* Add Expense Form */}
 <Box sx={{ display: 'flex' }}>
 <AppBar position="fixed" open={open}>
         <Toolbar >
@@ -789,7 +731,7 @@ const ExpenseList = () => {
       </Drawer>
       <Main open={open}>
 
-{/* Data Grid Table */}
+{/* Expenses List View */}
 <Box
         sx={{
           width: '100%',
