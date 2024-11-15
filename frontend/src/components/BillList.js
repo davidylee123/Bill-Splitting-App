@@ -15,10 +15,8 @@ import Typography from '@mui/material/Typography';
 
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
-import MuiAppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Divider from '@mui/material/Divider';
-import { styled, useTheme } from '@mui/material/styles';
 
 import Fab from '@mui/material/Fab';
 import TextField from '@mui/material/TextField';
@@ -36,215 +34,124 @@ import SearchIcon from '@mui/icons-material/Search';
 import InputAdornment from '@mui/material/InputAdornment';
 import DoneIcon from '@mui/icons-material/Done';
 import ErrorIcon from '@mui/icons-material/Error';
-
-
-const drawerWidth = 240;
-
-const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
-    ({ theme }) => ({
-      flexGrow: 1,
-      padding: theme.spacing(3),
-      transition: theme.transitions.create('margin', {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen,
-      }),
-      marginLeft: `-${drawerWidth}px`,
-      variants: [
-        {
-          props: ({ open }) => open,
-          style: {
-            transition: theme.transitions.create('margin', {
-              easing: theme.transitions.easing.easeOut,
-              duration: theme.transitions.duration.enteringScreen,
-            }),
-            marginLeft: 0,
-          },
-        },
-      ],
-    }),
-  );
-
-const AppBar = styled(MuiAppBar, {
-    shouldForwardProp: (prop) => prop !== 'open',
-  })(({ theme }) => ({
-    transition: theme.transitions.create(['margin', 'width'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    variants: [
-      {
-        props: ({ open }) => open,
-        style: {
-          width: `calc(100% - ${drawerWidth}px)`,
-          marginLeft: `${drawerWidth}px`,
-          transition: theme.transitions.create(['margin', 'width'], {
-            easing: theme.transitions.easing.easeOut,
-            duration: theme.transitions.duration.enteringScreen,
-          }),
-        },
-      },
-    ],
-  }));
-
+import { Main, AppBar, drawerWidth } from '../Theme';
+import BillForm from './BillForm';
 
 const columns = [
-    { id: 'title', label: 'Title', minWidth: 50, align: "left" },
-    { id: 'friends', label: 'Friends', minWidth: 50, align: "center" },
-    { id: 'amount', label: 'Amount', minWidth: 50, align: "center" },
-    { id: 'id', label: 'Edit', minWidth: 50, align: "right" },
-  ];
+  { id: 'title', label: 'Title', minWidth: 50, align: "left" },
+  { id: 'friends', label: 'Friends', minWidth: 50, align: "left" },
+  { id: 'id', label: 'Edit', minWidth: 50, align: "right" },
+];
 
 const BillList = () => {
-    //for form drawer
-      const [open, setOpen] = React.useState(false);
-      const handleDrawerOpen = () => {
-        setOpen(true);
-      };
-    
-      const handleDrawerClose = () => {
-        setOpen(false);
-        setTitle('');
-        setTitleErr(false);
-        setFriendsErr(false);
-      };
+  //for form drawer
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [bills, setBills] = useState([]);
+  const [friends, setFriends] = useState([{ name: 'Andrew', included: false }, { name: 'Adriana', included: false }]);
+  const [addingFriend, setAddingFriend] = useState(false);
+  const [newFriend, setNewFriend] = useState('');
+  const [friendAddSuccess, setFriendAddSuccess] = useState(false);
+  const [friendAddErr, setFriendAddErr] = useState(false);
+  //for table
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+
+  const getBills = async () => {
+    try {
+      const response = await axios.get('http://localhost:8080/api/bills');
+      console.log(response.data);
+      alert('Bills fetched successfully!');
+      setBills(response.data);
+    } catch (error) {
+      console.error('There was an error fetching the bills!', error);
+    }
+  }
+
+  useEffect(() => {
+    getBills();
+  }, [])
+
+  const toggleBillForm = () => {
+    setIsOpen(!isOpen);
+  };
 
 
-    //for table
-    const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
 
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
-    };
-
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(+event.target.value);
-        setPage(0);
-    };
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(+event.target.value);
+    setPage(0);
+  };
 
 
-    const [bills, setBills] = useState([{title: 'bill', friends: ['Adriana', 'Alan'], amount: '15.00', id: -2}, {title: 'different bill', friends: ['Andrew', 'Adriana'], amount: '2.00', id: -1}]);
-    const [title, setTitle] = useState('');
-    const [expenses, setExpenses] = useState([]);
-    const [friends, setFriends] = useState([{name: 'Andrew', included: false}, {name: 'Adriana', included: false}]);
-    const [currID, setCurrID] = useState(0);
-    const [titleErr, setTitleErr] = useState(false);
-    const [friendsErr, setFriendsErr] = useState(false);
-    const [addingFriend, setAddingFriend] = useState(false);
-    const [newFriend, setNewFriend] = useState('');
-    const [friendAddSuccess, setFriendAddSuccess] = useState(false);
-    const [friendAddErr, setFriendAddErr] = useState(false);
-
-    const handleFriendAdd = () => {
-      if(newFriend.length >= 2){
-        setFriends([...friends, {name: newFriend, included: false}]);
-        setNewFriend('');
-        setFriendAddSuccess(true);
-      }else{
-        setFriendAddErr(true);
-      }
-      
+  const handleFriendAdd = () => {
+    if (newFriend.length >= 2) {
+      setFriends([...friends, { name: newFriend, included: false }]);
+      setNewFriend('');
+      setFriendAddSuccess(true);
+    } else {
+      setFriendAddErr(true);
     }
 
-    const handleFriendSelect = (event, n) => {
-      friends.map(f => {
-        if(f.name === n){
-          f.included = !f.included
-        }   
-      });
+  }
 
-    };
+  const handleDelete = (n) => {
+    setBills(bills.filter((f) => f.id !== n));
+  }
 
-    const handleDelete = (n) => {
-      setBills(bills.filter((f) => f.id !== n));
+  const handleEdit = (n) => {
+    //setTitle(col.title);
+    //setAmount(col.amount);
+
+    setBills(bills.filter((f) => f.id !== n));
+  }
+
+  const usersToString = (users) => {
+    if (users) {
+      let userNames = [];
+      userNames = users.map((user) => {
+        if (user) {
+          return user.userName;
+        } else {
+          return 'null';
+        }
+      })
+      return userNames.toString();
     }
+    return '';
+  }
 
-    const handleEdit = (n) => {
-      //setTitle(col.title);
-      //setAmount(col.amount);
+  return (
+    <div>
 
-      setBills(bills.filter((f) => f.id !== n));
-    }
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        let billFriends = [];
-        friends.map(f => {
-          if(f.included){
-            billFriends.push(f.name);
-          }
-        });
-        
-        if(title.length < 1){
-          setTitleErr(true);
-        }else{
-          setTitleErr(false);
-        }
-        if(billFriends.length < 1){
-          setFriendsErr(true);
-        }else{
-          setFriendsErr(false);
-        }
-
-        if(!titleErr && !friendsErr){
-          setBills([...bills, {id: currID, title: title, friends: billFriends, amount: "0.00"}]);
-          setTitle('');
-          setCurrID(currID+1);
-          const newBill = { title, expenses, friends};
-    
-          try {
-              const response = await axios.post('http://localhost:8080/api/bills', newBill);
-              alert('Bill created successfully!');
-              console.log(response.data);
-          } catch (error) {
-              console.error('There was an error creating the bill!', error);
-          }
-        }
-        
-    };
-
-    useEffect(() => {
-        const fetchBills = async () => {
-            try {
-                const response = await axios.get('http://localhost:8080/api/bills');
-                setBills(response.data);
-            } catch (error) {
-                console.error('There was an error fetching the bills!', error);
-            }
-        };
-
-        fetchBills();
-    }, []);
-
-    return (
-        <div>
-
-{/* form Drawer */}
-<Box sx={{display: 'flex'}}>
-<AppBar position="fixed" open={open}>
-        <Toolbar >
-            <h2>Bill Splitting App</h2> 
-            <Button onClick={() => {setAddingFriend(true)}}
-            sx={[
-              {
-                bottom: 'auto',
-                right: 20,
-                top: 20,
-                left: 'auto',
-                position: 'fixed',
-              },
-              open && { display: 'none' },
-            ]}
-            color="inherit" variant="outlined">Add Friend<AddIcon /></Button>
-        </Toolbar>
-      </AppBar>
-      <Drawer
-            anchor='top'
-            open={addingFriend}
-            onClose={() => {setAddingFriend(false); setNewFriend('')}}
-          >
-            <Stack spacing={1} direction="row">
-            <TextField fullWidth 
+      {/* Add Friend Form */}
+      <Box sx={{ display: 'flex' }}>
+        <AppBar position="fixed" open={isOpen}>
+          <Toolbar >
+            <h2>Bill Splitting App</h2>
+            <Button onClick={() => { setAddingFriend(true) }}
+              sx={[
+                {
+                  bottom: 'auto',
+                  right: 20,
+                  top: 20,
+                  left: 'auto',
+                  position: 'fixed',
+                },
+                isOpen && { display: 'none' },
+              ]}
+              color="inherit" variant="outlined">Add Friend<AddIcon /></Button>
+          </Toolbar>
+        </AppBar>
+        <Drawer
+          anchor='top'
+          isOpen={addingFriend}
+          onClose={() => { setAddingFriend(false); setNewFriend('') }}
+        >
+          <Stack spacing={1} direction="row">
+            <TextField fullWidth
               placeholder="Enter your friend's username..."
               value={newFriend}
               onChange={(e) => setNewFriend(e.target.value)}
@@ -253,209 +160,124 @@ const BillList = () => {
                   startAdornment: (<InputAdornment position="start"><SearchIcon /></InputAdornment>),
                 },
               }}>
-                
+
             </TextField >
-            <IconButton onClick={() => {handleFriendAdd()}} 
+            <IconButton onClick={() => { handleFriendAdd() }}
               color="primary"><AddIcon />
             </IconButton>
-            <Divider orientation="vertical" flexItem/>
-            <IconButton color="error" onClick={() => {setAddingFriend(false); setNewFriend('')}}>
-                <CloseIcon />
+            <Divider orientation="vertical" flexItem />
+            <IconButton color="error" onClick={() => { setAddingFriend(false); setNewFriend('') }}>
+              <CloseIcon />
             </IconButton>
-            </Stack>
+          </Stack>
 
-            {/* Add friend success notif */}
-            <Drawer
-              anchor='top'
-              open={friendAddSuccess}
-              onClose={() => {setFriendAddSuccess(false)}}
-            >
-            <Stack spacing={1} direction="row" sx={{ justifyContent: "center", alignItems: "center",}}>
-            <Typography variant="h6">Friend successfully added!</Typography> 
-            <DoneIcon color="success"/>
-            </Stack>
-            </Drawer>
-
-            {/* Add friend err notif */}
-            <Drawer
-              anchor='top'
-              open={friendAddErr}
-              onClose={() => {setFriendAddErr(false)}}
-            >
-            <Stack spacing={1} direction="row" sx={{ justifyContent: "center", alignItems: "center",}}>
-            <Typography variant="h6">Sorry! We couldn't find that user.</Typography> 
-            <ErrorIcon color="error"/>
-            </Stack>
-            </Drawer>
-
-          </Drawer>
-<Drawer
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          '& .MuiDrawer-paper': {
-            width: drawerWidth,
-            boxSizing: 'border-box',
-          },
-        }}
-        variant="persistent"
-        anchor="left"
-        open={open}
-      >
-        
-          
-        <Divider />
-            <form onSubmit={handleSubmit}>
-            <Stack spacing={1} direction="column">
-            <Stack spacing={1} direction="row">
-            <h2 align="center">Create New Bill</h2>
-            <IconButton size="small" color="error" onClick={handleDrawerClose}>
-                <CloseIcon />
-            </IconButton>
-            </Stack>
-            <Divider />
-            {titleErr ? 
-            <TextField
-                    error
-                    helperText="Please enter a title for the bill."
-                    variant="outlined"
-                    placeholder="Bill Title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                /> 
-                :
-                <TextField
-                variant="outlined"
-                placeholder="Bill Title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-            />}
-
-            {friendsErr ?
-            <FormGroup >
-              {friends.map((friend) => (
-              <FormControlLabel 
-                
-                value={friend.included}
-                onChange={(e) => handleFriendSelect(e.target, friend.name)}
-                control={<Checkbox  icon={<PersonOutlineOutlinedIcon color="error"/>} 
-                checkedIcon={<PersonAddIcon />}/>}
-                label={friend.name} />
-              ))}
-            </FormGroup>
-            :
-            <FormGroup >
-              {friends.map((friend) => (
-              <FormControlLabel 
-                value={friend.included}
-                onChange={(e) => handleFriendSelect(e.target, friend.name)}
-                control={<Checkbox icon={<PersonOutlineOutlinedIcon />} 
-                checkedIcon={<PersonAddIcon />}/>}
-                label={friend.name} />
-              ))}
-            </FormGroup>
-            }
-                
-                </Stack>
-                <Stack spacing={1} direction="column">
-                
-                <Button align="right" variant="contained" type="submit">Create Bill</Button>
-                </Stack>
-
-            </form>
-      </Drawer>
-      <Main open={open}>
-{/* MUI Table Component*/}
-
-            <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-              <TableContainer sx={{ maxHeight: 440 }}>
-                <Table stickyHeader aria-label="sticky table">
-                  <TableHead>
-                    <TableRow>
-                            <TableCell colSpan={4} align="center"><h2>Bills</h2></TableCell>
-                    </TableRow>
-                    <TableRow>
-                      {columns.map((column) => (
-                        <TableCell
-                          key={column.id}
-                          align={column.align}
-                          style={{ minWidth: column.minWidth }}
-                        >
-                          {column.label}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {bills
-                      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                      .map((Bills) => {
-                        return (
-                          <TableRow hover role="checkbox" tabIndex={-1} key={Bills.code}>
-                            {columns.map((column) => {
-                              const value = Bills[column.id];
-                              return (
-                                <TableCell key={column.id} align={column.align}>
-                                    {column.id === 'title' 
-                                        ? <Button onClick={() => {document.location='http://localhost:3000/'+value}}> {value}</Button> 
-                                        :column.id === 'friends'
-                                        ? value.map((friend, i) => (
-                                          i == 0 ?
-                                          friend :
-                                          ", " + friend
-                                        ))
-                                        : column.id === 'id' 
-                                        ? <>
-                                        <IconButton onClick={() => handleEdit(value)} color="warning"><EditIcon /></IconButton>
-                                        <IconButton onClick={() => handleDelete(value)} color="error"><DeleteIcon /></IconButton>
-                                        </>
-                                        :value}
-                                    
-                                </TableCell>
-                              );
-                            })}
-                          </TableRow>
-                        );
-                      })}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <TablePagination
-                rowsPerPageOptions={[10, 25, 100]}
-                component="div"
-                count={bills.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-              />
-            </Paper>
-            </Main>
-            </Box>            
-            {/* Floating Action Button */}
-            <Fab
-            variant="extended"
-            color="primary"
-            aria-label="open drawer"
-            onClick={handleDrawerOpen}
-            sx={[
-              {
-                mr: 2,
-                margin: 0,
-                top: 'auto',
-                right: 20,
-                bottom: 20,
-                left: 'auto',
-                position: 'fixed',
-              },
-              open && { display: 'none' },
-            ]}
+          {/* Add friend success notif */}
+          <Drawer
+            anchor='top'
+            isOpen={friendAddSuccess}
+            onClose={() => { setFriendAddSuccess(false) }}
           >
-            Create Bill <AddIcon />
-          </Fab>
+            <Stack spacing={1} direction="row" sx={{ justifyContent: "center", alignItems: "center", }}>
+              <Typography variant="h6">Friend successfully added!</Typography>
+              <DoneIcon color="success" />
+            </Stack>
+          </Drawer>
 
-        </div>
-    );
+          {/* Add friend err notif */}
+          <Drawer
+            anchor='top'
+            isOpen={friendAddErr}
+            onClose={() => { setFriendAddErr(false) }}
+          >
+            <Stack spacing={1} direction="row" sx={{ justifyContent: "center", alignItems: "center", }}>
+              <Typography variant="h6">Sorry! We couldn't find that user.</Typography>
+              <ErrorIcon color="error" />
+            </Stack>
+          </Drawer>
+
+        </Drawer>
+
+        {/* Create New Bill Form */}
+        <BillForm isOpen={isOpen} friends={friends} bills={bills} setBills={setBills} toggler={toggleBillForm} />
+
+        {/* Bill List View */}
+        <Main open={isOpen}>
+          <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+            <TableContainer sx={{ maxHeight: 440 }}>
+              <Table stickyHeader aria-label="sticky table">
+                <TableHead>
+                  <TableRow>
+                    <TableCell colSpan={3} align="center"><h2>Bills</h2></TableCell>
+                  </TableRow>
+                  <TableRow>
+                    {columns.map((column) => (
+                      <TableCell
+                        key={column.id}
+                        align={column.align}
+                        style={{ minWidth: column.minWidth }}
+                      >
+                        {column.label}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {bills.map((bill) => {
+                    return (
+                      <TableRow hover role="checkbox">
+                        <TableCell>
+                          <Button onClick={() => { document.location = 'http://localhost:3000/' + bill.title }}> {bill.title}</Button>
+                        </TableCell>
+                        <TableCell>{usersToString(bill.users)}</TableCell>
+                        <TableCell
+                          align="right"
+                        >
+                          <IconButton onClick={() => handleEdit(bill.id)} color="warning"><EditIcon /></IconButton>
+                          <IconButton onClick={() => handleDelete(bill.id)} color="error"><DeleteIcon /></IconButton>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <TablePagination
+              rowsPerPageOptions={[10, 25, 100]}
+              component="div"
+              count={bills.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+          </Paper>
+        </Main>
+      </Box>
+
+      {/* Floating Action Button */}
+      <Fab
+        variant="extended"
+        color="primary"
+        aria-label="open drawer"
+        onClick={toggleBillForm}
+        sx={[
+          {
+            mr: 2,
+            margin: 0,
+            top: 'auto',
+            right: 20,
+            bottom: 20,
+            left: 'auto',
+            position: 'fixed',
+          },
+          isOpen && { display: 'none' },
+        ]}
+      >
+        Create Bill <AddIcon />
+      </Fab>
+
+    </div>
+  );
 };
 
 export default BillList;
