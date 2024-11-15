@@ -28,11 +28,11 @@ const BillForm = ({isOpen, friends, toggler, bills, setBills}) => {
   };
 
   const handleFriendSelect = (name) => {
-    setBillFriends(setBillFriends(friends.map(f => {
+    setBillFriends(friends.map(f => {
       if(f.name === name){
         f.included = !f.included
       }   
-  })))};
+  }))};
 
   const checkForm = () => {
     if(title.length < 1){
@@ -40,7 +40,7 @@ const BillForm = ({isOpen, friends, toggler, bills, setBills}) => {
     }else{
       setTitleErr(false);
     }
-    if(billFriends.length < 1){
+    if(!billFriends && billFriends.length < 1){
       setFriendsErr(true);
     }else{
       setFriendsErr(false);
@@ -49,6 +49,7 @@ const BillForm = ({isOpen, friends, toggler, bills, setBills}) => {
 
   const addBill = async (e) => {
     e.preventDefault();
+    checkForm();
     if(!titleErr && !friendsErr){
       const newBill = {title: title, expenses: [], users: billFriends};
       try {
