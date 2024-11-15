@@ -19,10 +19,6 @@ public class BillService {
     }
 
     public Bill createBill(Bill bill) {
-        Optional<Bill> existingBill = billRepository.findByCustomId(bill.getId());
-        if (existingBill.isPresent()) {
-            throw new IllegalArgumentException("A bill with this id already exists.");
-        }
         return billRepository.save(bill);
     }
 

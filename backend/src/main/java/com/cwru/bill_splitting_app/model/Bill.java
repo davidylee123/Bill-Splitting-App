@@ -10,13 +10,11 @@ import java.util.List;
 @Document(collection = "bills")
 public class Bill {
     @Id
-    private String id;
     private String title;
     private List<Expense> expenses;
     private List<User> users;
 
-    public Bill(String id, String title, List<Expense> expenses, List<User> users) {
-        this.id = id;
+    public Bill(String title, List<Expense> expenses, List<User> users) {
         this.title = title;
         this.expenses = expenses;
         this.users = users;

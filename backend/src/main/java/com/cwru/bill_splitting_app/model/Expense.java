@@ -11,14 +11,12 @@ package com.cwru.bill_splitting_app.model;
 public class Expense {
     @Id
     private String _id;
-    private String id;
     private String name;
     private double amount;
     private String paidBy;
     private List<String> splitBetween;
 
-    public Expense(String id, String name, double amount, String paidBy, List<String> splitBetween) {
-        this.id = id;
+    public Expense(String name, double amount, String paidBy, List<String> splitBetween) {
         this.name = name;
         this.amount = amount;
         this.paidBy = paidBy;

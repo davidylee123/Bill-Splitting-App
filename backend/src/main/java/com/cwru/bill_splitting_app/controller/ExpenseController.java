@@ -23,9 +23,6 @@ public class ExpenseController {
 
     @PostMapping
     public ResponseEntity<Expense> createExpense(@RequestBody Expense expense) {
-        if (expense.getId() != null && expenseService.getExpenseByCustomId(expense.getId()).isPresent()) {
-            throw new IllegalArgumentException("Expense with this custom ID already exists");
-        }
         Expense createdExpense = expenseService.createExpense(expense);
         return ResponseEntity.ok(createdExpense);
     }

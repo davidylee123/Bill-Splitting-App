@@ -9,12 +9,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class User {
     @Id
     private String _id;
-    private String id;
     private String userName;
     private String email;
 
-    public User(String id, String userName, String email) {
-        this.id = id;
+    public User(String userName, String email) {
         this.userName = userName;
         this.email = email;
     }

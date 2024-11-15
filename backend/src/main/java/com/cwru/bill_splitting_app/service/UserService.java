@@ -2,7 +2,6 @@ package com.cwru.bill_splitting_app.service;
 
 import com.cwru.bill_splitting_app.model.User;
 import com.cwru.bill_splitting_app.repository.UserRepository;
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,12 +15,6 @@ public class UserService {
     private UserRepository userRepository;
 
     public User createUser(User user) {
-        if (user.getId() != null && userRepository.existsById(user.getId())) {
-            throw new IllegalArgumentException("User with this ID already exists");
-        }
-        if (user.get_id() == null) {
-            user.set_id(new ObjectId().toString());
-        }
         return userRepository.save(user);
     }
 
