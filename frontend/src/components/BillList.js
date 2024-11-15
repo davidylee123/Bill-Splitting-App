@@ -147,7 +147,7 @@ const BillList = () => {
         </AppBar>
         <Drawer
           anchor='top'
-          isOpen={addingFriend}
+          open={addingFriend}
           onClose={() => { setAddingFriend(false); setNewFriend('') }}
         >
           <Stack spacing={1} direction="row">
