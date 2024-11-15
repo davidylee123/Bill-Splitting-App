@@ -15,10 +15,8 @@ import Typography from '@mui/material/Typography';
 
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
-import MuiAppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Divider from '@mui/material/Divider';
-import { styled, useTheme } from '@mui/material/styles';
 
 import Fab from '@mui/material/Fab';
 import TextField from '@mui/material/TextField';
@@ -37,6 +35,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import DoneIcon from '@mui/icons-material/Done';
 import ErrorIcon from '@mui/icons-material/Error';
 import {Main, AppBar, drawerWidth} from '../Theme';
+import BillForm from './BillForm';
 
 const columns = [
     { id: 'title', label: 'Title', minWidth: 50, align: "left" },
@@ -47,18 +46,15 @@ const columns = [
 
 const BillList = () => {
     //for form drawer
-      const [open, setOpen] = React.useState(false);
+      const [isOpen, setIsOpen] = React.useState(false);
       const handleDrawerOpen = () => {
-        setOpen(true);
+        setIsOpen(true);
       };
     
-      const handleDrawerClose = () => {
-        setOpen(false);
-        setTitle('');
-        setTitleErr(false);
-        setFriendsErr(false);
-      };
-
+  const toggleBillForm = () => {
+    setIsOpen(!isOpen);
+  };
+  
     //for table
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(10);
@@ -96,7 +92,7 @@ const BillList = () => {
       
     }
 
-    const handleFriendSelect = (event, n) => {
+    const handleFriendSelect = (n) => {
       friends.map(f => {
         if(f.name === n){
           f.included = !f.included
@@ -169,11 +165,9 @@ const BillList = () => {
     return (
         <div>
 
-/*
- * Add Friend Form
- */
+{/* Add Friend Form */}
 <Box sx={{display: 'flex'}}>
-<AppBar position="fixed" open={open}>
+<AppBar position="fixed" open={isOpen}>
         <Toolbar >
             <h2>Bill Splitting App</h2> 
             <Button onClick={() => {setAddingFriend(true)}}
@@ -185,14 +179,14 @@ const BillList = () => {
                 left: 'auto',
                 position: 'fixed',
               },
-              open && { display: 'none' },
+              isOpen && { display: 'none' },
             ]}
             color="inherit" variant="outlined">Add Friend<AddIcon /></Button>
         </Toolbar>
       </AppBar>
       <Drawer
             anchor='top'
-            open={addingFriend}
+            isOpen={addingFriend}
             onClose={() => {setAddingFriend(false); setNewFriend('')}}
           >
             <Stack spacing={1} direction="row">
@@ -219,7 +213,7 @@ const BillList = () => {
             {/* Add friend success notif */}
             <Drawer
               anchor='top'
-              open={friendAddSuccess}
+              isOpen={friendAddSuccess}
               onClose={() => {setFriendAddSuccess(false)}}
             >
             <Stack spacing={1} direction="row" sx={{ justifyContent: "center", alignItems: "center",}}>
@@ -231,7 +225,7 @@ const BillList = () => {
             {/* Add friend err notif */}
             <Drawer
               anchor='top'
-              open={friendAddErr}
+              isOpen={friendAddErr}
               onClose={() => {setFriendAddErr(false)}}
             >
             <Stack spacing={1} direction="row" sx={{ justifyContent: "center", alignItems: "center",}}>
@@ -243,84 +237,10 @@ const BillList = () => {
           </Drawer>
 
 {/* Create New Bill Form */}
-<Drawer
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          '& .MuiDrawer-paper': {
-            width: drawerWidth,
-            boxSizing: 'border-box',
-          },
-        }}
-        variant="persistent"
-        anchor="left"
-        open={open}
-      >
-        
-          
-        <Divider />
-            <form onSubmit={handleSubmit}>
-            <Stack spacing={1} direction="column">
-            <Stack spacing={1} direction="row">
-            <h2 align="center">Create New Bill</h2>
-            <IconButton size="small" color="error" onClick={handleDrawerClose}>
-                <CloseIcon />
-            </IconButton>
-            </Stack>
-            <Divider />
-            {titleErr ? 
-            <TextField
-                    error
-                    helperText="Please enter a title for the bill."
-                    variant="outlined"
-                    placeholder="Bill Title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                /> 
-                :
-                <TextField
-                variant="outlined"
-                placeholder="Bill Title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-            />}
-
-            {friendsErr ?
-            <FormGroup >
-              {friends.map((friend) => (
-              <FormControlLabel 
-                
-                value={friend.included}
-                onChange={(e) => handleFriendSelect(e.target, friend.name)}
-                control={<Checkbox  icon={<PersonOutlineOutlinedIcon color="error"/>} 
-                checkedIcon={<PersonAddIcon />}/>}
-                label={friend.name} />
-              ))}
-            </FormGroup>
-            :
-            <FormGroup >
-              {friends.map((friend) => (
-              <FormControlLabel 
-                value={friend.included}
-                onChange={(e) => handleFriendSelect(e.target, friend.name)}
-                control={<Checkbox icon={<PersonOutlineOutlinedIcon />} 
-                checkedIcon={<PersonAddIcon />}/>}
-                label={friend.name} />
-              ))}
-            </FormGroup>
-            }
-                
-                </Stack>
-                <Stack spacing={1} direction="column">
-                
-                <Button align="right" variant="contained" type="submit">Create Bill</Button>
-                </Stack>
-
-            </form>
-      </Drawer>
+<BillForm isOpen={isOpen} friends={friends} bills={bills} setBills={setBills} toggler={toggleBillForm}/>
 
 {/* Bill List View */}
-      <Main open={open}>
+      <Main open={isOpen}>
             <Paper sx={{ width: '100%', overflow: 'hidden' }}>
               <TableContainer sx={{ maxHeight: 440 }}>
                 <Table stickyHeader aria-label="sticky table">
@@ -402,7 +322,7 @@ const BillList = () => {
                 left: 'auto',
                 position: 'fixed',
               },
-              open && { display: 'none' },
+              isOpen && { display: 'none' },
             ]}
           >
             Create Bill <AddIcon />
