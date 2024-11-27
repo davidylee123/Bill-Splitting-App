@@ -2,19 +2,16 @@ package com.cwru.bill_splitting_app.service;
 
 import com.cwru.bill_splitting_app.model.User;
 import com.cwru.bill_splitting_app.repository.UserRepository;
-import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class UserServiceTest {
@@ -22,112 +19,189 @@ class UserServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private BCryptPasswordEncoder passwordEncoder;
+
     @InjectMocks
     private UserService userService;
 
-    private User user1;
-    private User user2;
+    private User user;
+    private User friend;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-
-        user1 = new User(new ObjectId().toString(), "user1", "user1@example.com");
-        user2 = new User(new ObjectId().toString(), "user2", "user2@example.com");
+        user = new User("user1", "David Lee", "david@example.com", "hashedPassword", null);
+        friend = new User("user2", "Jose Kim", "jose@example.com", "hashedPassword", null);
     }
 
     @Test
-    void testCreateUser() {
-        when(userRepository.existsById(user1.getId())).thenReturn(false);
-        when(userRepository.save(any(User.class))).thenReturn(user1);
+    void testCreateUser_Success() {
+        when(passwordEncoder.encode("plaintextPassword")).thenReturn("hashedPassword");
+        when(userRepository.save(any(User.class))).thenReturn(user);
 
-        User createdUser = userService.createUser(user1);
+        User createdUser = userService.createUser(new User("user1", "David Lee", "david@example.com", "plaintextPassword", null));
 
         assertNotNull(createdUser);
-        assertEquals("user1", createdUser.getUserName());
-        verify(userRepository, times(1)).existsById(user1.getId());
-        verify(userRepository, times(1)).save(user1);
+        assertEquals("hashedPassword", createdUser.getPasswordHash());
+        verify(passwordEncoder, times(1)).encode("plaintextPassword");
+        verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
-    void testCreateUser_WithExistingId() {
-        when(userRepository.existsById(user1.getId())).thenReturn(true);
+    void testGetUserById_Success() {
+        when(userRepository.findByCustomId("user1")).thenReturn(Optional.of(user));
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> userService.createUser(user1));
+        Optional<User> result = userService.getUserById("user1");
 
-        assertEquals("User with this ID already exists", exception.getMessage());
-        verify(userRepository, times(1)).existsById(user1.getId());
-        verify(userRepository, times(0)).save(any(User.class));
+        assertTrue(result.isPresent());
+        assertEquals("David Lee", result.get().getUserName());
+        verify(userRepository, times(1)).findByCustomId("user1");
     }
 
     @Test
-    void testGetAllUsers() {
-        when(userRepository.findAll()).thenReturn(Arrays.asList(user1, user2));
+    void testGetUserById_NotFound() {
+        when(userRepository.findByCustomId("user1")).thenReturn(Optional.empty());
 
-        List<User> users = userService.getAllUsers();
+        Optional<User> result = userService.getUserById("user1");
 
-        assertEquals(2, users.size());
-        verify(userRepository, times(1)).findAll();
+        assertFalse(result.isPresent());
+        verify(userRepository, times(1)).findByCustomId("user1");
     }
 
     @Test
-    void testGetUserById() {
-        when(userRepository.findById(user1.getId())).thenReturn(Optional.of(user1));
+    void testUpdateUser_Success() {
+        User updatedDetails = new User("user1", "David Updated", "updated@example.com", null, null);
+        when(userRepository.findByCustomId("user1")).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(updatedDetails);
 
-        Optional<User> foundUser = userService.getUserById(user1.getId());
+        Optional<User> result = userService.updateUser("user1", updatedDetails);
 
-        assertTrue(foundUser.isPresent());
-        assertEquals("user1", foundUser.get().getUserName());
-        verify(userRepository, times(1)).findById(user1.getId());
-    }
-
-    @Test
-    void testUpdateUser() {
-        when(userRepository.findById(user1.getId())).thenReturn(Optional.of(user1));
-        when(userRepository.save(any(User.class))).thenReturn(user1);
-
-        User updatedDetails = new User(user1.getId(), "Updated User", "updated@example.com");
-        Optional<User> updatedUser = userService.updateUser(user1.getId(), updatedDetails);
-
-        assertTrue(updatedUser.isPresent());
-        assertEquals("Updated User", updatedUser.get().getUserName());
-        assertEquals("updated@example.com", updatedUser.get().getEmail());
-        verify(userRepository, times(1)).findById(user1.getId());
-        verify(userRepository, times(1)).save(user1);
+        assertTrue(result.isPresent());
+        assertEquals("David Updated", result.get().getUserName());
+        verify(userRepository, times(1)).findByCustomId("user1");
+        verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
     void testUpdateUser_NotFound() {
-        when(userRepository.findById(user1.getId())).thenReturn(Optional.empty());
+        when(userRepository.findByCustomId("user1")).thenReturn(Optional.empty());
 
-        User updatedDetails = new User(user1.getId(), "Updated User", "updated@example.com");
-        Optional<User> updatedUser = userService.updateUser(user1.getId(), updatedDetails);
+        Optional<User> result = userService.updateUser("user1", new User("user1", "Updated", "updated@example.com", null, null));
 
-        assertFalse(updatedUser.isPresent());
-        verify(userRepository, times(1)).findById(user1.getId());
-        verify(userRepository, times(0)).save(any(User.class));
+        assertFalse(result.isPresent());
+        verify(userRepository, times(1)).findByCustomId("user1");
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
-    void testDeleteUser() {
-        when(userRepository.findById(user1.getId())).thenReturn(Optional.of(user1));
-        doNothing().when(userRepository).delete(user1);
+    void testDeleteUser_Success() {
+        when(userRepository.findByCustomId("user1")).thenReturn(Optional.of(user));
+        doNothing().when(userRepository).delete(user);
 
-        boolean isDeleted = userService.deleteUser(user1.getId());
+        boolean result = userService.deleteUser("user1");
 
-        assertTrue(isDeleted);
-        verify(userRepository, times(1)).findById(user1.getId());
-        verify(userRepository, times(1)).delete(user1);
+        assertTrue(result);
+        verify(userRepository, times(1)).findByCustomId("user1");
+        verify(userRepository, times(1)).delete(user);
     }
 
     @Test
     void testDeleteUser_NotFound() {
-        when(userRepository.findById("nonexistent-id")).thenReturn(Optional.empty());
+        when(userRepository.findByCustomId("user1")).thenReturn(Optional.empty());
 
-        boolean isDeleted = userService.deleteUser("nonexistent-id");
+        boolean result = userService.deleteUser("user1");
 
-        assertFalse(isDeleted);
-        verify(userRepository, times(1)).findById("nonexistent-id");
-        verify(userRepository, times(0)).delete(any(User.class));
+        assertFalse(result);
+        verify(userRepository, times(1)).findByCustomId("user1");
+        verify(userRepository, never()).delete(any(User.class));
+    }
+
+    @Test
+    void testAddFriend_Success() {
+        when(userRepository.findByCustomId("user1")).thenReturn(Optional.of(user));
+        when(userRepository.findByCustomId("user2")).thenReturn(Optional.of(friend));
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        userService.addFriend("user1", "user2");
+
+        assertTrue(user.getFriends().contains("user2"));
+        assertTrue(friend.getFriends().contains("user1"));
+        verify(userRepository, times(1)).findByCustomId("user1");
+        verify(userRepository, times(1)).findByCustomId("user2");
+        verify(userRepository, times(2)).save(any(User.class));
+    }
+
+    @Test
+    void testAddFriend_UserNotFound() {
+        when(userRepository.findByCustomId("user1")).thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class, () -> userService.addFriend("user1", "user2"));
+        verify(userRepository, times(1)).findByCustomId("user1");
+        verify(userRepository, never()).findByCustomId("user2");
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void testRemoveFriend_Success() {
+        user.getFriends().add("user2");
+        friend.getFriends().add("user1");
+
+        when(userRepository.findByCustomId("user1")).thenReturn(Optional.of(user));
+        when(userRepository.findByCustomId("user2")).thenReturn(Optional.of(friend));
+
+        userService.removeFriend("user1", "user2");
+
+        assertFalse(user.getFriends().contains("user2"));
+        assertFalse(friend.getFriends().contains("user1"));
+        verify(userRepository, times(1)).findByCustomId("user1");
+        verify(userRepository, times(1)).findByCustomId("user2");
+        verify(userRepository, times(2)).save(any(User.class));
+    }
+
+    @Test
+    void testRemoveFriend_UserNotFound() {
+        when(userRepository.findByCustomId("user1")).thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class, () -> userService.removeFriend("user1", "user2"));
+        verify(userRepository, times(1)).findByCustomId("user1");
+        verify(userRepository, never()).findByCustomId("user2");
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void testAuthenticateUser_Success() {
+        when(userRepository.findByEmail("david@example.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("plaintextPassword", "hashedPassword")).thenReturn(true);
+
+        Optional<User> result = userService.authenticateUser("david@example.com", "plaintextPassword");
+
+        assertTrue(result.isPresent());
+        assertEquals("David Lee", result.get().getUserName());
+        verify(userRepository, times(1)).findByEmail("david@example.com");
+        verify(passwordEncoder, times(1)).matches("plaintextPassword", "hashedPassword");
+    }
+
+    @Test
+    void testAuthenticateUser_UserNotFound() {
+        when(userRepository.findByEmail("unknown@example.com")).thenReturn(Optional.empty());
+
+        Optional<User> result = userService.authenticateUser("unknown@example.com", "plaintextPassword");
+
+        assertFalse(result.isPresent());
+        verify(userRepository, times(1)).findByEmail("unknown@example.com");
+        verify(passwordEncoder, never()).matches(anyString(), anyString());
+    }
+
+    @Test
+    void testAuthenticateUser_InvalidPassword() {
+        when(userRepository.findByEmail("david@example.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("wrongPassword", "hashedPassword")).thenReturn(false);
+
+        Optional<User> result = userService.authenticateUser("david@example.com", "wrongPassword");
+
+        assertFalse(result.isPresent());
+        verify(userRepository, times(1)).findByEmail("david@example.com");
+        verify(passwordEncoder, times(1)).matches("wrongPassword", "hashedPassword");
     }
 }

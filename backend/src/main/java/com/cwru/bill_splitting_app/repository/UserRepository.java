@@ -15,7 +15,11 @@ public interface UserRepository extends MongoRepository<User, String> {
     @Query("{ 'id': ?0 }")
     Optional<User> findByCustomId(String id);
 
-    List<User> findByUserName(String userName);
-
     Optional<User> findByEmail(String email);
+
+    @Query("{ 'friends': ?0 }")
+    List<User> findUsersByFriendId(String friendId);
+
+    @Query("{ 'id': ?0 }")
+    Optional<User> findFriendsByUserId(String userId);
 }
