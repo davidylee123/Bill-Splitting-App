@@ -98,7 +98,7 @@ The backend exposes the following REST API endpoints:
 - `GET /api/users/{id}` - Retrieve a user by ID
 - `PUT /api/users/{id}` - Update user information by ID
 - `DELETE /api/users/{id}` - Delete a user by ID
-- `Post /api/users/{userId}/friends/{friendId}` - Add a friend by friendId to a user by userId
+- `POST /api/users/{userId}/friends/{friendId}` - Add a friend by friendId to a user by userId
 - `DELETE /api/users/{userId}/friends/{friendId}` - Remove a friend by friendId from a user by userId
 - `POST /api/users/authenticate` - Authenticate a user by email and password
 
