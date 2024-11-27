@@ -10,14 +10,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+
 import java.util.Collections;
 import java.util.Optional;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(BillController.class)
+@WithMockUser(username = "testuser", roles = {"USER"})
 public class BillControllerTest {
 
     @Autowired
@@ -71,7 +75,8 @@ public class BillControllerTest {
 
         mockMvc.perform(post("/api/bills")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(sampleBill)))
+                        .content(objectMapper.writeValueAsString(sampleBill))
+                        .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Sample Bill"));
     }
@@ -82,7 +87,8 @@ public class BillControllerTest {
 
         mockMvc.perform(put("/api/bills/1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(sampleBill)))
+                        .content(objectMapper.writeValueAsString(sampleBill))
+                        .with(csrf())) // Include CSRF token
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Sample Bill"));
     }
@@ -91,7 +97,7 @@ public class BillControllerTest {
     public void testDeleteBill() throws Exception {
         Mockito.when(billService.deleteBill("1")).thenReturn(true);
 
-        mockMvc.perform(delete("/api/bills/1"))
+        mockMvc.perform(delete("/api/bills/1").with(csrf()))
                 .andExpect(status().isNoContent());
     }
 }
