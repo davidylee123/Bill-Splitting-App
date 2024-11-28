@@ -118,3 +118,17 @@ The backend exposes the following REST API endpoints:
 - `PUT /api/expenses/{id}` - Update an expense by ID
 - `DELETE /api/expenses/{id}` - Delete an expense by ID
 - `GET /api/expenses/customId/{customId}` - Retrieve an expense by custom ID
+
+## Example Usage
+
+### Adding a Friend
+
+**Request:**
+
+- **URL**: `POST /api/users/{userId}/friends/{friendId}`
+- **Body**: None
+- **Example**: Add user with `id` `644000000000000000000001` as a friend of user with `id` `644000000000000000000002`.
+
+**Response:**
+
+- **200 OK**: Successfully added the friend.

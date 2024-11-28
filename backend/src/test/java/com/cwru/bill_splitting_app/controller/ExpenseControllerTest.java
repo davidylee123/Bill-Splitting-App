@@ -3,22 +3,21 @@ package com.cwru.bill_splitting_app.controller;
 import com.cwru.bill_splitting_app.model.Expense;
 import com.cwru.bill_splitting_app.service.ExpenseService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
 import java.util.Optional;
 
-import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -27,11 +26,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 public class ExpenseControllerTest {
 
+    @Mock
+    private ExpenseService expenseService;
+
+    @InjectMocks
+    private ExpenseController expenseController;
+
     @Autowired
     private MockMvc mockMvc;
-
-    @MockBean
-    private ExpenseService expenseService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -41,99 +43,94 @@ public class ExpenseControllerTest {
 
     @BeforeEach
     public void setup() {
-        expense1 = new Expense();
-        expense1.setId("exp1");
-        expense1.setName("Groceries");
-        expense1.setAmount(50.0);
-        expense1.setPaidBy("David Lee");
-        expense1.setSplitBetween(Arrays.asList("David Lee", "Jose Kim"));
-
-        expense2 = new Expense();
-        expense2.setId("exp2");
-        expense2.setName("Electricity");
-        expense2.setAmount(75.5);
-        expense2.setPaidBy("Jose Kim");
-        expense2.setSplitBetween(Arrays.asList("David Lee", "Jose Kim"));
+        expense1 = new Expense(new ObjectId("644000000000000000000001"), "Groceries", 50.0, "David Lee", Arrays.asList("David Lee", "Jose Kim"));
+        expense2 = new Expense(new ObjectId("644000000000000000000002"), "Electricity", 75.5, "Jose Kim", Arrays.asList("David Lee", "Jose Kim"));
     }
 
     @Test
     public void testGetAllExpenses() throws Exception {
-        given(expenseService.getAllExpenses()).willReturn(Arrays.asList(expense1, expense2));
+        when(expenseService.getAllExpenses()).thenReturn(Arrays.asList(expense1, expense2));
 
         mockMvc.perform(get("/api/expenses"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id", is("exp1")))
-                .andExpect(jsonPath("$[0].name", is("Groceries")))
-                .andExpect(jsonPath("$[1].id", is("exp2")))
-                .andExpect(jsonPath("$[1].name", is("Electricity")));
+                .andExpect(jsonPath("$[0]._id").value(expense1.get_id().toString()))
+                .andExpect(jsonPath("$[0].name").value("Groceries"))
+                .andExpect(jsonPath("$[1]._id").value(expense2.get_id().toString()))
+                .andExpect(jsonPath("$[1].name").value("Electricity"));
     }
 
     @Test
     public void testCreateExpense() throws Exception {
-        given(expenseService.createExpense(any(Expense.class))).willReturn(expense1);
+        Expense newExpense = new Expense(new ObjectId(), "Groceries", 50.0, "David Lee", Arrays.asList("David Lee", "Jose Kim"));
+        when(expenseService.createExpense(any(Expense.class))).thenReturn(newExpense);
 
-        String expenseJson = objectMapper.writeValueAsString(expense1);
+        String expenseJson = objectMapper.writeValueAsString(newExpense);
 
         mockMvc.perform(post("/api/expenses")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(expenseJson))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is("exp1")))
-                .andExpect(jsonPath("$.name", is("Groceries")));
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value("Groceries"));
     }
 
     @Test
     public void testGetExpenseById() throws Exception {
-        given(expenseService.getExpenseById("exp1")).willReturn(Optional.of(expense1));
+        when(expenseService.getExpenseById(new ObjectId("644000000000000000000001"))).thenReturn(Optional.of(expense1));
 
-        mockMvc.perform(get("/api/expenses/exp1"))
+        mockMvc.perform(get("/api/expenses/644000000000000000000001"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is("exp1")))
-                .andExpect(jsonPath("$.name", is("Groceries")));
+                .andExpect(jsonPath("$._id").value(expense1.get_id().toString()))
+                .andExpect(jsonPath("$.name").value("Groceries"));
     }
 
     @Test
     public void testGetExpenseById_NotFound() throws Exception {
-        given(expenseService.getExpenseById("exp3")).willReturn(Optional.empty());
+        when(expenseService.getExpenseById(new ObjectId("644000000000000000000003"))).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/expenses/exp3"))
+        mockMvc.perform(get("/api/expenses/644000000000000000000003"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     public void testUpdateExpense() throws Exception {
-        Expense updatedExpense = new Expense();
-        updatedExpense.setId("exp1");
-        updatedExpense.setName("Updated Groceries");
-        updatedExpense.setAmount(60.0);
-        updatedExpense.setPaidBy("David Lee");
-        updatedExpense.setSplitBetween(Arrays.asList("David Lee", "Jose Kim"));
-
-        given(expenseService.updateExpense(eq("exp1"), any(Expense.class))).willReturn(Optional.of(updatedExpense));
+        Expense updatedExpense = new Expense(new ObjectId("644000000000000000000001"), "Updated Groceries", 60.0, "David Lee", Arrays.asList("David Lee", "Jose Kim"));
+        when(expenseService.updateExpense(eq(new ObjectId("644000000000000000000001")), any(Expense.class)))
+                .thenReturn(Optional.of(updatedExpense));
 
         String updatedExpenseJson = objectMapper.writeValueAsString(updatedExpense);
 
-        mockMvc.perform(put("/api/expenses/exp1")
+        mockMvc.perform(put("/api/expenses/644000000000000000000001")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(updatedExpenseJson))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name", is("Updated Groceries")))
-                .andExpect(jsonPath("$.amount", is(60.0)));
+                .andExpect(jsonPath("$.name").value("Updated Groceries"))
+                .andExpect(jsonPath("$.amount").value(60.0));
+    }
+
+    @Test
+    public void testUpdateExpense_NotFound() throws Exception {
+        when(expenseService.updateExpense(eq(new ObjectId("644000000000000000000001")), any(Expense.class)))
+                .thenReturn(Optional.empty());
+
+        mockMvc.perform(put("/api/expenses/644000000000000000000001")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(expense1)))
+                .andExpect(status().isNotFound());
     }
 
     @Test
     public void testDeleteExpense() throws Exception {
-        given(expenseService.deleteExpense("exp1")).willReturn(true);
+        when(expenseService.deleteExpense(new ObjectId("644000000000000000000001"))).thenReturn(true);
 
-        mockMvc.perform(delete("/api/expenses/exp1"))
+        mockMvc.perform(delete("/api/expenses/644000000000000000000001"))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     public void testDeleteExpense_NotFound() throws Exception {
-        given(expenseService.deleteExpense("exp3")).willReturn(false);
+        when(expenseService.deleteExpense(new ObjectId("644000000000000000000003"))).thenReturn(false);
 
-        mockMvc.perform(delete("/api/expenses/exp3"))
+        mockMvc.perform(delete("/api/expenses/644000000000000000000003"))
                 .andExpect(status().isNotFound());
     }
 }

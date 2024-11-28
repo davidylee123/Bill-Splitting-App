@@ -1,6 +1,7 @@
 package com.cwru.bill_splitting_app.model;
 
 import lombok.Data;
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -10,28 +11,41 @@ import java.util.List;
 @Data
 @Document(collection = "users")
 public class User {
-
     @Id
-    private String _id;
-    private String id;
-    private String userName;
+    private ObjectId _id;
+    private String name;
     private String email;
-    private String passwordHash;
-    private List<String> friends;
+    private String password;
+    private List<ObjectId> friends;
 
-    public User(String id, String userName, String email, String passwordHash, List<String> friends) {
-        this.id = id;
-        this.userName = userName;
+    public User(String name, String email, String password) {
+        this._id = new ObjectId();
+        this.name = name;
         this.email = email;
-        this.passwordHash = passwordHash;
-        this.friends = friends == null ? new ArrayList<>() : friends;
+        this.password = password;
+        this.friends = new ArrayList<>();
     }
 
-    public User(String id, String userName, String email) {
-        this(id, userName, email, null, null);
+    public User(ObjectId _id, String name, String email, String password, List<ObjectId> friends) {
+        this._id = _id;
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.friends = friends != null ? friends : new ArrayList<>();
+    }
+
+    public User(ObjectId _id, String name, String email, String password) {
+        this._id = _id;
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.friends = new ArrayList<>();
     }
 
     public User() {
+        this._id = new ObjectId();
         this.friends = new ArrayList<>();
     }
+
+
 }

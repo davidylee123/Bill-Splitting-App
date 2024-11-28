@@ -3,6 +3,7 @@ package com.cwru.bill_splitting_app.controller;
 import com.cwru.bill_splitting_app.model.Bill;
 import com.cwru.bill_splitting_app.service.BillService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -34,11 +35,13 @@ public class BillControllerTest {
     private ObjectMapper objectMapper;
 
     private Bill sampleBill;
+    private ObjectId sampleId;
 
     @BeforeEach
     public void setUp() {
+        sampleId = new ObjectId();
         sampleBill = new Bill();
-        sampleBill.setId("1");
+        sampleBill.setId(sampleId);
         sampleBill.setTitle("Sample Bill");
     }
 
@@ -52,19 +55,19 @@ public class BillControllerTest {
     }
 
     @Test
-    public void testGetBillsById() throws Exception {
-        Mockito.when(billService.getBillsByCustomId("1")).thenReturn(Collections.singletonList(sampleBill));
+    public void testGetBillById() throws Exception {
+        Mockito.when(billService.getBillById(sampleId)).thenReturn(Optional.of(sampleBill));
 
-        mockMvc.perform(get("/api/bills/1"))
+        mockMvc.perform(get("/api/bills/" + sampleId.toHexString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title").value("Sample Bill"));
+                .andExpect(jsonPath("$.title").value("Sample Bill"));
     }
 
     @Test
     public void testGetBillByExpenseId() throws Exception {
-        Mockito.when(billService.getBillByExpenseId("expense1")).thenReturn(Optional.of(sampleBill));
+        Mockito.when(billService.getBillByExpenseId(sampleId)).thenReturn(Optional.of(sampleBill));
 
-        mockMvc.perform(get("/api/bills/expenses/expense1"))
+        mockMvc.perform(get("/api/bills/expenses/" + sampleId.toHexString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Sample Bill"));
     }
@@ -83,21 +86,21 @@ public class BillControllerTest {
 
     @Test
     public void testUpdateBill() throws Exception {
-        Mockito.when(billService.updateBill(Mockito.eq("1"), Mockito.any(Bill.class))).thenReturn(Optional.of(sampleBill));
+        Mockito.when(billService.updateBill(Mockito.eq(sampleId), Mockito.any(Bill.class))).thenReturn(Optional.of(sampleBill));
 
-        mockMvc.perform(put("/api/bills/1")
+        mockMvc.perform(put("/api/bills/" + sampleId.toHexString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(sampleBill))
-                        .with(csrf())) // Include CSRF token
+                        .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Sample Bill"));
     }
 
     @Test
     public void testDeleteBill() throws Exception {
-        Mockito.when(billService.deleteBill("1")).thenReturn(true);
+        Mockito.when(billService.deleteBill(sampleId)).thenReturn(true);
 
-        mockMvc.perform(delete("/api/bills/1").with(csrf()))
+        mockMvc.perform(delete("/api/bills/" + sampleId.toHexString()).with(csrf()))
                 .andExpect(status().isNoContent());
     }
 }
