@@ -1,5 +1,6 @@
 package com.cwru.bill_splitting_app.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
@@ -12,6 +13,7 @@ import java.util.List;
 public class Expense {
 
     @Id
+    @JsonProperty("_id")
     private ObjectId _id;
     private String name;
     private double amount;

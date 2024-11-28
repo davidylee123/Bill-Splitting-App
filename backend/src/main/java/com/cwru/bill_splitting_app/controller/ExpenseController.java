@@ -39,7 +39,7 @@ public class ExpenseController {
             return expense.map(ResponseEntity::ok)
                     .orElseGet(() -> ResponseEntity.notFound().build());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(null); // Return 400 if invalid ObjectId
+            return ResponseEntity.badRequest().body(null);
         }
     }
 
@@ -50,17 +50,17 @@ public class ExpenseController {
             return updatedExpense.map(ResponseEntity::ok)
                     .orElseGet(() -> ResponseEntity.notFound().build());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(null); // Return 400 if invalid ObjectId
+            return ResponseEntity.badRequest().body(null);
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteExpense(@PathVariable String id) {
+    public ResponseEntity<Void> deleteExpense(@PathVariable("id") ObjectId id) {
         try {
-            boolean deleted = expenseService.deleteExpense(new ObjectId(id));
+            boolean deleted = expenseService.deleteExpense(id);
             return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build(); // Invalid ID
+            return ResponseEntity.badRequest().build();
         }
     }
 

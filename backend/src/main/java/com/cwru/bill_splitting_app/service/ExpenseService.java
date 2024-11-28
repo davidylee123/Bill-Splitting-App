@@ -16,7 +16,8 @@ public class ExpenseService {
     private ExpenseRepository expenseRepository;
 
     public List<Expense> getAllExpenses() {
-        return expenseRepository.findAll();
+        List<Expense> expenses = expenseRepository.findAll();
+        return expenses;
     }
 
     public Expense createExpense(Expense expense) {
@@ -44,17 +45,13 @@ public class ExpenseService {
     }
 
     public Optional<Expense> updateExpense(ObjectId id, Expense expenseDetails) {
-        Optional<Expense> existingExpense = expenseRepository.findById(id);
-        if (existingExpense.isPresent()) {
-            Expense expense = existingExpense.get();
-            expense.setName(expenseDetails.getName());
-            expense.setAmount(expenseDetails.getAmount());
-            expense.setPaidBy(expenseDetails.getPaidBy());
-            expense.setSplitBetween(expenseDetails.getSplitBetween());
-            return Optional.of(expenseRepository.save(expense));
-        } else {
-            return Optional.empty();
-        }
+        return expenseRepository.findById(id).map(existingExpense -> {
+            existingExpense.setName(expenseDetails.getName());
+            existingExpense.setAmount(expenseDetails.getAmount());
+            existingExpense.setPaidBy(expenseDetails.getPaidBy());
+            existingExpense.setSplitBetween(expenseDetails.getSplitBetween());
+            return expenseRepository.save(existingExpense);
+        });
     }
 
     public boolean deleteExpense(ObjectId id) {
