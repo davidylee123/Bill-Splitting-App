@@ -6,7 +6,6 @@ import {useParams} from 'react-router-dom';
 
 const BillPage = () => {
     let bill_id = useParams().bill_id;
-    console.log('in BillPage; bill_id:' + bill_id)
     let location = String(useLocation().pathname).substring(1);
     return (
         <div >

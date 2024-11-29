@@ -54,7 +54,7 @@ const ExpenseList = ({bill_id}) => {
       const response = await api.get('/api/bills/' + bill_id);
       console.log(response.data);
       alert('Expenses fetched successfully!');
-      setExpenses(response.data.expenses)
+      setExpenses(response.data)
     } catch (error) {
       console.error('There was an error fetching the expenses!', error);
     }
