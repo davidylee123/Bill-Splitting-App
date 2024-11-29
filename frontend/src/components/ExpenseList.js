@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
@@ -10,25 +9,15 @@ import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Button from '@mui/material/Button';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
 
 import Box from '@mui/material/Box';
-import Drawer from '@mui/material/Drawer';
 import Toolbar from '@mui/material/Toolbar';
-import Divider from '@mui/material/Divider';
 
 import Fab from '@mui/material/Fab';
-import TextField from '@mui/material/TextField';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import IconButton from '@mui/material/IconButton';
-import CloseIcon from '@mui/icons-material/Close';
-import SearchIcon from '@mui/icons-material/Search';
-import InputAdornment from '@mui/material/InputAdornment';
-import DoneIcon from '@mui/icons-material/Done';
-import ErrorIcon from '@mui/icons-material/Error';
 import { Main, AppBar, drawerWidth } from '../Theme';
 import BillForm from './BillForm';
 import api from '../services/api';
@@ -52,9 +41,9 @@ const ExpenseList = ({bill_id}) => {
   const getExpenses = async () => {
     try {
       const response = await api.get('/api/bills/' + bill_id);
-      console.log(response.data);
+      console.log('displaying expenses:',response.data[0].expenses);
       alert('Expenses fetched successfully!');
-      setExpenses(response.data)
+      setExpenses(response.data[0].expenses)
     } catch (error) {
       console.error('There was an error fetching the expenses!', error);
     }
