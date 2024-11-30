@@ -6,12 +6,13 @@ import org.springframework.data.mongodb.repository.Query;
 import org.bson.types.ObjectId;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ExpenseRepository extends MongoRepository<Expense, ObjectId> {
 
-    List<Expense> findByPaidBy(ObjectId paidBy);
+    Optional<Expense> findByPaidBy(ObjectId paidBy);
 
-    List<Expense> findByAmount(double amount);
+    Optional<Expense> findByAmount(double amount);
 
     List<Expense> findByTitle(String title);
 

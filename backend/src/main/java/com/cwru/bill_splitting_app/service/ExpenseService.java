@@ -29,7 +29,7 @@ public class ExpenseService {
     return expenseRepository.findById(id);
   }
 
-  public List<Expense> findByPaidBy(ObjectId paidBy) {
+  public Optional<Expense> findByPaidBy(ObjectId paidBy) {
     return expenseRepository.findByPaidBy(paidBy);
   }
 
@@ -37,7 +37,7 @@ public class ExpenseService {
     return expenseRepository.findByUsers(users);
   }
 
-  public List<Expense> findByAmount(double amount) {
+  public Optional<Expense> findByAmount(double amount) {
     return expenseRepository.findByAmount(amount);
   }
 
