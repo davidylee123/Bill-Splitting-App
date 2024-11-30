@@ -1,29 +1,30 @@
 package com.cwru.bill_splitting_app.model;
 
-        import lombok.Data;
-        import org.springframework.data.annotation.Id;
-        import org.springframework.data.mongodb.core.mapping.Document;
+import lombok.Data;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.bson.types.ObjectId;
 
-        import java.util.List;
+import java.util.List;
 
 @Data
 @Document(collection = "expenses")
 public class Expense {
-    @Id
-    private String _id;
-    private String id;
-    private String name;
-    private double amount;
-    private String paidBy;
-    private List<String> splitBetween;
+  @Id
+  private ObjectId _id;
+  private String title;
+  private double amount;
+  private ObjectId paidBy;
+  private List<ObjectId> users;
 
-    public Expense(String id, String name, double amount, String paidBy, List<String> splitBetween) {
-        this.id = id;
-        this.name = name;
-        this.amount = amount;
-        this.paidBy = paidBy;
-        this.splitBetween = splitBetween;
-    }
+  // public Expense(ObjectId _id, String title, double amount, ObjectId paidBy, List<ObjectId> users) {
+  //   this._id = _id;
+  //   this.title = title;
+  //   this.amount = amount;
+  //   this.paidBy = paidBy;
+  //   this.users = users;
+  // }
 
-    public Expense() {}
+  // public Expense() {
+  // }
 }
