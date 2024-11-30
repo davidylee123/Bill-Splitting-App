@@ -16,7 +16,8 @@ public interface BillRepository extends MongoRepository<Bill, ObjectId> {
     @Query("{ 'users._id': ?0 }")
     Optional<Bill> findByUsersId(ObjectId userId);
 
-    List<Bill> findAllById(ObjectId id);
+    @Query("{'_id': ?0}")
+    Optional<Bill> findById(ObjectId id);
 
     List<Bill> findByTitle(String title);
 }

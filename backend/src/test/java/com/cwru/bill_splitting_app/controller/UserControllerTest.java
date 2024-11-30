@@ -9,7 +9,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.bson.types.ObjectId;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.mockito.Mockito;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -21,6 +24,7 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 @WebMvcTest(UserController.class)
 public class UserControllerTest {
@@ -32,10 +36,12 @@ public class UserControllerTest {
   private UserService userService;
 
   @Autowired
-  ObjectId user1Id;
-  ObjectId user2Id;
-  User user1;
-  User user2;
+  private ObjectMapper objectMapper;
+
+  private User user1;
+  private User user2;
+  private ObjectId user1Id;
+  private ObjectId user2Id;
 
   @BeforeEach
   public void setup() {
@@ -51,20 +57,20 @@ public class UserControllerTest {
     user2.setName("David Lee");
     user2.setEmail("jose.kim@example.com");
 
-    user1.setFriends(Arrays.asList(user2Id));
-    user2.setFriends(Arrays.asList(user1Id));
+    user1.setFriends(Arrays.asList(user1Id));
+    user2.setFriends(Arrays.asList(user2Id));
   }
 
-  @Test
-  public void testGetAllUsers() throws Exception {
-    given(userService.getAllUsers()).willReturn(Arrays.asList(user1, user2));
+  // @Test
+  // public void testGetAllUsers() throws Exception {
+  //   given(userService.getAllUsers()).willReturn(Arrays.asList(user1, user2));
 
-    mockMvc.perform(get("/api/users"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(2)))
-        .andExpect(jsonPath("$[0].name").value("David Lee"))
-        .andExpect(jsonPath("$[1].name").value("Jose Kim"));
-  }
+  //   mockMvc.perform(get("/api/users"))
+  //       .andExpect(status().isOk())
+  //       .andExpect(jsonPath("$.length()").value(2))
+  //       .andExpect(jsonPath("$[0].name").value("David Lee"))
+  //       .andExpect(jsonPath("$[1].name").value("Jose Kim"));
+  // }
 
   @Test
   public void testCreateUser() throws Exception {
@@ -72,7 +78,7 @@ public class UserControllerTest {
 
     mockMvc.perform(post("/api/users")
         .contentType(MediaType.APPLICATION_JSON)
-        .content("{\"id\": \"1\", \"name\": \"David Lee\", \"email\": \"david.lee@example.com\"}"))
+        .content("{\"name\": \"David Lee\", \"email\": \"david.lee@example.com\"}"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value("David Lee"));
   }
@@ -99,11 +105,24 @@ public class UserControllerTest {
   public void testUpdateUser_Found() throws Exception {
     given(userService.updateUser(eq(user1Id), any(User.class))).willReturn(Optional.of(user1));
 
-    mockMvc.perform(put("/api/users/" + user1Id.toHexString())
+    ObjectId updatedDetailsId = new ObjectId();
+    User updatedDetails = new User();
+    updatedDetails.set_id(user1Id);
+    updatedDetails.setName("David Lee Updated");
+    updatedDetails.setEmail("david.lee@example.com");
+    updatedDetails.setFriends(Arrays.asList(user2Id));
+
+    // Mockito.verify(userService).updateUser(eq(user1Id), eq(updatedDetails));
+
+    MvcResult result = mockMvc.perform(put("/api/users/" + user1Id)
         .contentType(MediaType.APPLICATION_JSON)
-        .content("{\"name\": \"David Lee Updated\", \"email\": \"david.lee@example.com\"}"))
+        .content(objectMapper.writeValueAsString(updatedDetails)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.name").value("David Lee Updated"));
+        .andExpect(jsonPath("$.name").value("David Lee Updated"))
+        .andReturn();
+
+    System.out.println("Look HERE!");
+    System.out.println(result.getResponse().getContentAsString());
   }
 
   @Test

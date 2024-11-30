@@ -14,15 +14,5 @@ public class Bill {
   private ObjectId _id;
   private String title;
   private List<Expense> expenses;
-  private List<ObjectId> users;
-
-  // public Bill(ObjectId _id, String title, List<Expense> expenses, List<ObjectId> users) {
-  //   this._id = _id;
-  //   this.title = title;
-  //   this.expenses = expenses;
-  //   this.users = users;
-  // }
-
-  // public Bill() {
-  // }
+  private List<User> users;
 }

@@ -45,24 +45,6 @@ class BillServiceTest {
   @BeforeEach
   public void setUp() {
     MockitoAnnotations.openMocks(this);
-    expense1 = new Expense();
-    expense1Id = new ObjectId();
-    expense1.set_id(expense1Id);
-    expense1.setTitle("Groceries");
-    expense1.setAmount(50.0);
-    user1Id = new ObjectId();
-    user2Id = new ObjectId();
-    expense1.setPaidBy(user1Id);
-    expense1.setUsers(Arrays.asList(user1Id, user2Id));
-
-    expense2 = new Expense();
-    expense2Id = new ObjectId();
-    expense2.set_id(expense2Id);
-    expense2.setTitle("Electricity");
-    expense2.setAmount(75.5);
-    expense2.setPaidBy(user2Id);
-    expense2.setUsers(Arrays.asList(user1Id, user2Id));
-
     user1Id = new ObjectId();
     user1 = new User();
     user1.set_id(user1Id);
@@ -75,6 +57,23 @@ class BillServiceTest {
     user2.setName("David Lee");
     user2.setEmail("jose.kim@example.com");
 
+    expense1 = new Expense();
+    expense1Id = new ObjectId();
+    expense1.set_id(expense1Id);
+    expense1.setTitle("Groceries");
+    expense1.setAmount(50.0);
+    expense1.setPaidBy(user1);
+    expense1.setUsers(Arrays.asList(user1, user2));
+
+    expense2 = new Expense();
+    expense2Id = new ObjectId();
+    expense2.set_id(expense2Id);
+    expense2.setTitle("Electricity");
+    expense2.setAmount(75.5);
+    expense2.setPaidBy(user2);
+    expense2.setUsers(Arrays.asList(user1, user2));
+
+
     user1.setFriends(Arrays.asList(user2Id));
     user2.setFriends(Arrays.asList(user1Id));
 
@@ -82,15 +81,15 @@ class BillServiceTest {
     billId = new ObjectId();
     bill.set_id(billId);
     bill.setTitle("Sample Bill");
-    bill.setExpenses(Arrays.asList(expense1, expense2));
-    bill.setUsers(Arrays.asList(user1Id, user2Id));
+    bill.setExpenses(Arrays.asList(expense1));
+    bill.setUsers(Arrays.asList(user1, user2));
 
     updatedBill = new Bill();
     updatedBillId = new ObjectId();
     updatedBill.set_id(updatedBillId);
     updatedBill.setTitle("Updated Household Bill");
-    updatedBill.setExpenses(Arrays.asList(expense1));
-    updatedBill.setUsers(Arrays.asList(user1Id));
+    updatedBill.setExpenses(Arrays.asList(expense2));
+    updatedBill.setUsers(Arrays.asList(user1));
   }
 
   @Test
@@ -126,13 +125,12 @@ class BillServiceTest {
 
   @Test
   void getBillsById() {
-    when(billRepository.findAllById(bill.get_id())).thenReturn(Arrays.asList(bill));
+    when(billRepository.findById(bill.get_id())).thenReturn(Optional.of(bill));
 
-    Optional<Bill> bills = billService.getBillById(bill.get_id());
-    assertNotNull(bills);
-    // assertEquals(1, bills.size());
-    assertEquals(bill.get_id(), bills.get_id());
-    verify(billRepository, times(1)).findAllById(bill.get_id());
+    Optional<Bill> foundBill = billService.getBillById(bill.get_id());
+    assertTrue(foundBill.isPresent());
+    assertEquals(bill.get_id(), foundBill.get().get_id());
+    verify(billRepository, times(1)).findById(bill.get_id());
   }
 
   @Test

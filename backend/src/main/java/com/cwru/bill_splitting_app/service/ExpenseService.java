@@ -1,6 +1,7 @@
 package com.cwru.bill_splitting_app.service;
 
 import com.cwru.bill_splitting_app.model.Expense;
+import com.cwru.bill_splitting_app.model.User;
 import com.cwru.bill_splitting_app.repository.ExpenseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,15 +30,15 @@ public class ExpenseService {
     return expenseRepository.findById(id);
   }
 
-  public Optional<Expense> findByPaidBy(ObjectId paidBy) {
+  public List<Expense> findByPaidBy(User paidBy) {
     return expenseRepository.findByPaidBy(paidBy);
   }
 
-  public List<Expense> findByUsers(List<ObjectId> users) {
+  public List<Expense> findByUsers(List<User> users) {
     return expenseRepository.findByUsers(users);
   }
 
-  public Optional<Expense> findByAmount(double amount) {
+  public List<Expense> findByAmount(double amount) {
     return expenseRepository.findByAmount(amount);
   }
 

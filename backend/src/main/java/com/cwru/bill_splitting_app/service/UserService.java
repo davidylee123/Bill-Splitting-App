@@ -54,7 +54,6 @@ public class UserService {
               .orElseThrow(() -> new RuntimeException("User not found"));
       User friend = userRepository.findById(friendId)
               .orElseThrow(() -> new RuntimeException("Friend not found"));
-
       if (!user.getFriends().contains(friendId)) {
           user.getFriends().add(friendId);
           userRepository.save(user);
