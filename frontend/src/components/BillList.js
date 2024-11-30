@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
@@ -34,8 +33,10 @@ import SearchIcon from '@mui/icons-material/Search';
 import InputAdornment from '@mui/material/InputAdornment';
 import DoneIcon from '@mui/icons-material/Done';
 import ErrorIcon from '@mui/icons-material/Error';
+import {Link} from 'react-router-dom';
 import { Main, AppBar, drawerWidth } from '../Theme';
 import BillForm from './BillForm';
+import api from '../services/api';
 
 const columns = [
   { id: 'title', label: 'Title', minWidth: 50, align: "left" },
@@ -58,7 +59,7 @@ const BillList = () => {
 
   const getBills = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/bills');
+      const response = await api.get('/api/bills');
       console.log(response.data);
       alert('Bills fetched successfully!');
       setBills(response.data);
@@ -226,7 +227,9 @@ const BillList = () => {
                     return (
                       <TableRow hover role="checkbox">
                         <TableCell>
-                          <Button onClick={() => { document.location = 'http://localhost:3000/' + bill.title }}> {bill.title}</Button>
+                          <Link to={`/bill/${bill.id}`}>
+                            <Button>{bill.title}</Button>
+                          </Link>
                         </TableCell>
                         <TableCell>{usersToString(bill.users)}</TableCell>
                         <TableCell
