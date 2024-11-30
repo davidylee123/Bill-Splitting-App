@@ -87,12 +87,34 @@ const BillList = () => {
   };
 
 
-  const handleFriendAdd = () => {
-    if (newFriend.length >= 2) {
-      setFriends([...friends, { name: newFriend, included: false }]);
-      setNewFriend('');
-      setFriendAddSuccess(true);
-    } else {
+  const handleFriendAdd = async () => {
+    //alter this to:
+    //  try to fetch user with username newFriend
+    //  if user exists, add friend.ObjectId to user.friends list
+    //  otherwise, throw error
+    try {
+      const response = await api.get('/api/users');
+      let friend = null;
+      response.data.map((f) => {if(f.username == newFriend){
+          friend = f;
+        }}
+        );
+      if(friend != null){
+        alert('Friend found successfully!');
+        
+        //assume we know our current user id?
+        const thisUser = await api.get('api/users/' + userid);
+        thisUser.data.friends = [...thisUser.data.friends, friend.data.id];
+        const result = await api.put('api/users' + userid, thisUser);
+
+        setFriends([...friends, { name: newFriend, included: false }]);
+        setNewFriend('');
+        setFriendAddSuccess(true);
+      }else{
+        setFriendAddErr(true);
+      }
+    } catch (error) {
+      console.error('There was an error in finding this user!', error);
       setFriendAddErr(true);
     }
 
