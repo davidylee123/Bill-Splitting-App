@@ -2,6 +2,8 @@ package com.cwru.bill_splitting_app.controller;
 
 import com.cwru.bill_splitting_app.model.User;
 import com.cwru.bill_splitting_app.service.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,22 +11,17 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.bson.types.ObjectId;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.mockito.Mockito;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 
-import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 @WebMvcTest(UserController.class)
 public class UserControllerTest {
@@ -54,23 +51,23 @@ public class UserControllerTest {
     user2Id = new ObjectId();
     user2 = new User();
     user2.set_id(user2Id);
-    user2.setName("David Lee");
+    user2.setName("Jose Kim");
     user2.setEmail("jose.kim@example.com");
 
     user1.setFriends(Arrays.asList(user1Id));
     user2.setFriends(Arrays.asList(user2Id));
   }
 
-  // @Test
-  // public void testGetAllUsers() throws Exception {
-  //   given(userService.getAllUsers()).willReturn(Arrays.asList(user1, user2));
+  @Test
+  public void testGetAllUsers() throws Exception {
+    given(userService.getAllUsers()).willReturn(Arrays.asList(user1, user2));
 
-  //   mockMvc.perform(get("/api/users"))
-  //       .andExpect(status().isOk())
-  //       .andExpect(jsonPath("$.length()").value(2))
-  //       .andExpect(jsonPath("$[0].name").value("David Lee"))
-  //       .andExpect(jsonPath("$[1].name").value("Jose Kim"));
-  // }
+    mockMvc.perform(get("/api/users"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(2))
+            .andExpect(jsonPath("$[0].name").value("David Lee"))
+            .andExpect(jsonPath("$[1].name").value("Jose Kim"));
+  }
 
   @Test
   public void testCreateUser() throws Exception {
@@ -103,41 +100,22 @@ public class UserControllerTest {
 
   @Test
   public void testUpdateUser_Found() throws Exception {
-    Mockito.when(userService.updateUser(Mockito.eq(user1Id), Mockito.any(User.class)))
-        .thenReturn(Optional.of(user1));
+    User updatedUser = new User();
+    updatedUser.set_id(user1Id);
+    updatedUser.setName("David Lee Updated");
+    updatedUser.setEmail("david.lee@example.com");
+    updatedUser.setFriends(Collections.singletonList(new ObjectId("64c87da267e2a12b3c5d67e9")));
 
-    ObjectId updatedDetailsId = new ObjectId();
-    User updatedDetails = new User();
-    updatedDetails.set_id(user1Id);
-    updatedDetails.setName("David Lee Updated");
-    updatedDetails.setEmail("david.lee@example.com");
-    updatedDetails.setFriends(Arrays.asList(user2Id));
+    given(userService.updateUser(eq(user1Id), any(User.class))).willReturn(Optional.of(updatedUser));
 
-    mockMvc.perform(put("/api/users/" + user1Id)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(updatedDetails)))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.name").value("David Lee Updated"));
-    // given(userService.updateUser(eq(user1Id), any(User.class))).willReturn(Optional.of(user1));
-
-    // ObjectId updatedDetailsId = new ObjectId();
-    // User updatedDetails = new User();
-    // updatedDetails.set_id(user1Id);
-    // updatedDetails.setName("David Lee Updated");
-    // updatedDetails.setEmail("david.lee@example.com");
-    // updatedDetails.setFriends(Arrays.asList(user2Id));
-
-    // Mockito.verify(userService).updateUser(eq(user1Id), eq(updatedDetails));
-
-    // MvcResult result = mockMvc.perform(put("/api/users/" + user1Id)
-    //     .contentType(MediaType.APPLICATION_JSON)
-    //     .content(objectMapper.writeValueAsString(updatedDetails)))
-    //     .andExpect(status().isOk())
-    //     .andExpect(jsonPath("$.name").value("David Lee Updated"))
-    //     .andReturn();
-
-    // System.out.println("Look HERE!");
-    // System.out.println(result.getResponse().getContentAsString());
+    mockMvc.perform(put("/api/users/{id}", user1Id.toHexString())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(updatedUser)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.name").value("David Lee Updated"))
+            .andExpect(jsonPath("$.email").value("david.lee@example.com"))
+            .andExpect(jsonPath("$.friends[0].timestamp").exists())
+            .andExpect(jsonPath("$.friends[0].date").exists());
   }
 
   @Test

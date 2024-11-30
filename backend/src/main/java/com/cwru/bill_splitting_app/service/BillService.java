@@ -1,10 +1,11 @@
 package com.cwru.bill_splitting_app.service;
 
 import com.cwru.bill_splitting_app.model.Bill;
+import com.cwru.bill_splitting_app.model.Expense;
 import com.cwru.bill_splitting_app.repository.BillRepository;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.bson.types.ObjectId;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +17,19 @@ public class BillService {
   private BillRepository billRepository;
 
   public List<Bill> getAllBills() {
-    return billRepository.findAll();
+    List<Bill> bills = billRepository.findAll();
+
+    for (Bill bill : bills) {
+      if (bill.getExpenses() != null) {
+        for (Expense expense : bill.getExpenses()) {
+          if (expense == null) {
+            throw new IllegalArgumentException("Invalid expense detected: " + expense);
+          }
+        }
+      }
+    }
+
+    return bills;
   }
 
   public Bill createBill(Bill bill) {
