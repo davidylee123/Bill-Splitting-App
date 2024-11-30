@@ -103,7 +103,8 @@ public class UserControllerTest {
 
   @Test
   public void testUpdateUser_Found() throws Exception {
-    given(userService.updateUser(eq(user1Id), any(User.class))).willReturn(Optional.of(user1));
+    Mockito.when(userService.updateUser(Mockito.eq(user1Id), Mockito.any(User.class)))
+        .thenReturn(Optional.of(user1));
 
     ObjectId updatedDetailsId = new ObjectId();
     User updatedDetails = new User();
@@ -112,17 +113,31 @@ public class UserControllerTest {
     updatedDetails.setEmail("david.lee@example.com");
     updatedDetails.setFriends(Arrays.asList(user2Id));
 
-    // Mockito.verify(userService).updateUser(eq(user1Id), eq(updatedDetails));
-
-    MvcResult result = mockMvc.perform(put("/api/users/" + user1Id)
+    mockMvc.perform(put("/api/users/" + user1Id)
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(updatedDetails)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.name").value("David Lee Updated"))
-        .andReturn();
+        .andExpect(jsonPath("$.name").value("David Lee Updated"));
+    // given(userService.updateUser(eq(user1Id), any(User.class))).willReturn(Optional.of(user1));
 
-    System.out.println("Look HERE!");
-    System.out.println(result.getResponse().getContentAsString());
+    // ObjectId updatedDetailsId = new ObjectId();
+    // User updatedDetails = new User();
+    // updatedDetails.set_id(user1Id);
+    // updatedDetails.setName("David Lee Updated");
+    // updatedDetails.setEmail("david.lee@example.com");
+    // updatedDetails.setFriends(Arrays.asList(user2Id));
+
+    // Mockito.verify(userService).updateUser(eq(user1Id), eq(updatedDetails));
+
+    // MvcResult result = mockMvc.perform(put("/api/users/" + user1Id)
+    //     .contentType(MediaType.APPLICATION_JSON)
+    //     .content(objectMapper.writeValueAsString(updatedDetails)))
+    //     .andExpect(status().isOk())
+    //     .andExpect(jsonPath("$.name").value("David Lee Updated"))
+    //     .andReturn();
+
+    // System.out.println("Look HERE!");
+    // System.out.println(result.getResponse().getContentAsString());
   }
 
   @Test

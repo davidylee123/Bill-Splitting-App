@@ -33,9 +33,9 @@ public class ExpenseController {
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<Expense> getExpenseById(@PathVariable String id) {
+  public ResponseEntity<Expense> getExpenseById(@PathVariable ObjectId id) {
     try {
-      Optional<Expense> expense = expenseService.getExpenseById(new ObjectId(id));
+      Optional<Expense> expense = expenseService.getExpenseById(id);
       return expense.map(ResponseEntity::ok)
           .orElseGet(() -> ResponseEntity.notFound().build());
     } catch (IllegalArgumentException e) {
@@ -44,9 +44,9 @@ public class ExpenseController {
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<Expense> updateExpense(@PathVariable String id, @RequestBody Expense expenseDetails) {
+  public ResponseEntity<Expense> updateExpense(@PathVariable ObjectId id, @RequestBody Expense expenseDetails) {
     try {
-      Optional<Expense> updatedExpense = expenseService.updateExpense(new ObjectId(id), expenseDetails);
+      Optional<Expense> updatedExpense = expenseService.updateExpense(id, expenseDetails);
       return updatedExpense.map(ResponseEntity::ok)
           .orElseGet(() -> ResponseEntity.notFound().build());
     } catch (IllegalArgumentException e) {

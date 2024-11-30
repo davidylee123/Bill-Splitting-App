@@ -28,29 +28,29 @@ public class UserController {
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<User> getUserById(@PathVariable String id) {
-    Optional<User> user = userService.getUserById(new ObjectId(id));
+  public ResponseEntity<User> getUserById(@PathVariable ObjectId id) {
+    Optional<User> user = userService.getUserById(id);
     return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<User> updateUser(@PathVariable String id, @RequestBody User userDetails) {
-    Optional<User> updatedUser = userService.updateUser(new ObjectId(id), userDetails);
+  public ResponseEntity<User> updateUser(@PathVariable ObjectId id, @RequestBody User userDetails) {
+    Optional<User> updatedUser = userService.updateUser(id, userDetails);
     return updatedUser.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<Void> deleteUser(@PathVariable String id) {
-    if (userService.deleteUser(new ObjectId(id))) {
+  public ResponseEntity<Void> deleteUser(@PathVariable ObjectId id) {
+    if (userService.deleteUser(id)) {
       return ResponseEntity.noContent().build();
     }
     return ResponseEntity.notFound().build();
   }
 
   @PostMapping("/{userId}/friends/{friendId}")
-  public ResponseEntity<Void> addFriend(@PathVariable String userId, @PathVariable String friendId) {
+  public ResponseEntity<Void> addFriend(@PathVariable ObjectId userId, @PathVariable ObjectId friendId) {
     try {
-      userService.addFriend(new ObjectId(userId), new ObjectId(friendId));
+      userService.addFriend(userId, friendId);
       return ResponseEntity.ok().build();
     } catch (RuntimeException e) {
       return ResponseEntity.badRequest().build();
@@ -58,9 +58,9 @@ public class UserController {
   }
 
   @DeleteMapping("/{userId}/friends/{friendId}")
-  public ResponseEntity<Void> removeFriend(@PathVariable String userId, @PathVariable String friendId) {
+  public ResponseEntity<Void> removeFriend(@PathVariable ObjectId userId, @PathVariable ObjectId friendId) {
     try {
-      userService.removeFriend(new ObjectId(userId), new ObjectId(friendId));
+      userService.removeFriend(userId, friendId);
       return ResponseEntity.ok().build();
     } catch (RuntimeException e) {
       return ResponseEntity.badRequest().build();

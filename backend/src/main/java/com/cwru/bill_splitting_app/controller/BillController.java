@@ -24,20 +24,20 @@ public class BillController {
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<Bill> getBillById(@PathVariable String id) {
-    Optional<Bill> bill = billService.getBillById(new ObjectId(id));
+  public ResponseEntity<Bill> getBillById(@PathVariable ObjectId id) {
+    Optional<Bill> bill = billService.getBillById(id);
     return bill.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
   }
 
   @GetMapping("/expenses/{expenseId}")
-  public ResponseEntity<Bill> getBillByExpenseId(@PathVariable String expenseId) {
-    Optional<Bill> bill = billService.getBillByExpenseId(new ObjectId(expenseId));
+  public ResponseEntity<Bill> getBillByExpenseId(@PathVariable ObjectId expenseId) {
+    Optional<Bill> bill = billService.getBillByExpenseId(expenseId);
     return bill.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
   }
 
   @GetMapping("/users/{userId}")
-  public ResponseEntity<Bill> getBillByUserId(@PathVariable String userId) {
-    Optional<Bill> bill = billService.getBillByUserId(new ObjectId(userId));
+  public ResponseEntity<Bill> getBillByUserId(@PathVariable ObjectId userId) {
+    Optional<Bill> bill = billService.getBillByUserId(userId);
     return bill.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
   }
 
@@ -48,14 +48,14 @@ public class BillController {
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<Bill> updateBill(@PathVariable String id, @RequestBody Bill billDetails) {
-    Optional<Bill> updatedBill = billService.updateBill(new ObjectId(id), billDetails);
+  public ResponseEntity<Bill> updateBill(@PathVariable ObjectId id, @RequestBody Bill billDetails) {
+    Optional<Bill> updatedBill = billService.updateBill(id, billDetails);
     return updatedBill.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<Void> deleteBill(@PathVariable String id) {
-    boolean isDeleted = billService.deleteBill(new ObjectId(id));
+  public ResponseEntity<Void> deleteBill(@PathVariable ObjectId id) {
+    boolean isDeleted = billService.deleteBill(id);
     return isDeleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
   }
 }
