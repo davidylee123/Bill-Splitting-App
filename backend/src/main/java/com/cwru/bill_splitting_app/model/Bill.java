@@ -19,14 +19,7 @@ public class Bill {
   @JsonSerialize(using = ObjectIdSerializer.class)
   @JsonDeserialize(using = ObjectIdDeserializer.class)
   private ObjectId _id;
-
   private String title;
-
-  @JsonSerialize(contentUsing = ObjectIdSerializer.class)
-  @JsonDeserialize(contentUsing = ObjectIdDeserializer.class)
   private List<Expense> expenses;
-
-  @JsonSerialize(contentUsing = ObjectIdSerializer.class)
-  @JsonDeserialize(contentUsing = ObjectIdDeserializer.class)
   private List<User> users;
 }
