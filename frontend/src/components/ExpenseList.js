@@ -22,20 +22,17 @@ import { Main, AppBar, drawerWidth } from '../Theme';
 import BillForm from './BillForm';
 import api from '../services/api';
 
-const ExpenseList = ({bill_id}) => {
+const ExpenseList = ({ bill_id }) => {
 
   //for form drawer
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isFormOpen, setIsFormOpen] = React.useState(false);
   const [expenses, setExpenses] = useState([]);
   const [friends, setFriends] = useState([{ name: 'Andrew', included: false }, { name: 'Adriana', included: false }]);
-  //for table
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
   const getExpenses = async () => {
     try {
       const response = await api.get('/api/bills/' + bill_id);
-      console.log('displaying expenses:',response.data.expenses);
+      console.log('displaying expenses:', response.data.expenses);
       alert('Expenses fetched successfully!');
       setExpenses(response.data.expenses)
     } catch (error) {
@@ -47,147 +44,183 @@ const ExpenseList = ({bill_id}) => {
     getExpenses();
   }, [])
 
-  const toggleBillForm = () => {
-    setIsOpen(!isOpen);
+  const toggleForm = () => {
+    setIsFormOpen(!isFormOpen);
   };
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
-  };
-
-  const handleDelete = async (id) => {
+  const handleAdd = async (newExpense) => {
     try {
-      const response = await api.delete('/api/expenses/' + id)
-      if (response.status == 200) {
-        alert('Expense deleted successfully!');
-        setExpenses(expenses.filter((f) => f.id !== id));
+      // get the current bill
+      const currentBill = await api.get('api/bills/' + bill_id);
+      const newBill = currentBill.data;
+      // add new expense to the bill
+      newBill.expenses = [...newBill.expenses, newExpense];
+      const response = await api.put(`/api/bills/${bill_id}`, newBill);
+      // update the state if success
+      if (response.status === 200) {
+        setExpenses(response.data.expenses);
+        console.log("Expense added successfully!");
+      } else {
+        console.error("Error adding expense!", response.error);
+      }
+    } catch (error) {
+      console.error('There was an error adding the expense!', error);
+    }
+  }
+
+  const handleEdit = async (expenseId, newExpense) => {
+    try {
+      // get the current bill
+      const currentBill = await api.get('api/bills/' + bill_id);
+      const newBill = currentBill.data;
+      // edit the expense on the bill
+      const expenseIndex = newBill.expenses.findIndex((expense) => expense._id.toString() === expenseId);
+      if (expenseIndex !== -1) {
+        newBill.expenses[expenseIndex] = newExpense;
+        const response = await api.put(`/api/bills/${bill_id}`, newBill);
+        // update the state if success
+        if (response.status === 200) {
+          setExpenses(response.data.expenses);
+          console.log("Expense added successfully!");
+        } else {
+          console.error("Error adding expense!", response.error);
+        }
+      } else {
+        console.error('Expense not found!');
+      }
+    } catch (error) {
+      console.error('There was an error adding the expense!', error);
+    }
+  }
+
+  const handleDelete = async (expenseId) => {
+      try {
+        // get the current bill
+        const currentBill = await api.get('api/bills/' + bill_id);
+        const newBill = currentBill.data;
+        // remove the expense from the bill
+        newBill.expenses = newBill.expenses.filter((expense) => expense._id !== expenseId);
+        const response = await api.put(`/api/bills/${bill_id}`, newBill);
+        // update the state
+        if (response.status === 200) {
+          setExpenses(response.data.expenses);
+          console.log("Expense deleted successfully!");
+        } else {
+          console.error("Error deleting expense!", response.error);
+        }
+      } catch (error) {
+        console.error('There was an error deleting the expense!', error);
       }
     }
-    catch (error) {
-      console.error('There was an error deleting the expense!', error);
+
+    const usersToString = (users) => {
+      if (users) {
+        let userNames = [];
+        userNames = users.map((user) => {
+          if (user) {
+            return user.name;
+          } else {
+            return 'null';
+          }
+        })
+        return userNames.join(', ');
+      }
+      return '';
     }
-  }
 
-  const handleEdit = (n) => {
-    //setTitle(col.title);
-    //setAmount(col.amount);
+    const columns = [
+      { id: 'title', label: 'Title', minWidth: 50, align: "left" },
+      { id: 'amount', label: 'Cost', minWidth: 50, align: "left" },
+      { id: 'splitBetween', label: 'Split To', minWidth: 50, align: "left" },
+      { id: 'id', label: 'Edit', minWidth: 50, align: "right" },
+    ];
 
-    setExpenses(expenses.filter((f) => f.id !== n));
-  }
+    return (
+      <div>
+        <Box sx={{ display: 'flex' }}>
+          <AppBar position="fixed">
+            <Toolbar >
+              <h2>Bill Splitting App</h2>
+            </Toolbar>
+          </AppBar>
+          {/* Create New Expense Form */}
+          <BillForm isOpen={isFormOpen} friends={friends} expenses={expenses} setExpenses={setExpenses} toggler={toggleForm} />
 
-  const usersToString = (users) => {
-    if (users) {
-      let userNames = [];
-      userNames = users.map((user) => {
-        if (user) {
-          return user.name;
-        } else {
-          return 'null';
-        }
-      })
-      return userNames.join(', ');
-    }
-    return '';
-  }
-
-  const columns = [
-    { id: 'title', label: 'Title', minWidth: 50, align: "left" },
-    { id: 'amount', label: 'Cost', minWidth: 50, align: "left"},
-    { id: 'splitBetween', label: 'Split To', minWidth: 50, align: "left" },
-    { id: 'id', label: 'Edit', minWidth: 50, align: "right" },
-  ];
-
-  return (
-    <div>
-      <Box sx={{ display: 'flex' }}>
-        <AppBar position="fixed" open={isOpen}>
-          <Toolbar >
-            <h2>Bill Splitting App</h2>
-          </Toolbar>
-        </AppBar>
-        {/* Create New Expense Form */}
-        <BillForm isOpen={isOpen} friends={friends} expenses={expenses} setExpenses={setExpenses} toggler={toggleBillForm} />
-
-        {/*Expense List View */}
-        <Main open={isOpen}>
-          <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-            <TableContainer sx={{ maxHeight: 440 }}>
-              <Table stickyHeader aria-label="sticky table">
-                <TableHead>
-                  <TableRow>
-                    <TableCell colSpan={3} align="center"><h2>Expenses</h2></TableCell>
-                  </TableRow>
-                  <TableRow>
-                    {columns.map((column) => (
-                      <TableCell
-                        key={column.id}
-                        align={column.align}
-                        style={{ minWidth: column.minWidth }}
-                      >
-                        {column.label}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {expenses.map((expense) => {
-                    return (
-                      <TableRow
-                        hover role="checkbox"
-                        key={expense._id}
-                      >
-                        <TableCell>
-                          <Button> {expense.title}</Button>
-                        </TableCell>
-                        <TableCell>
-                          $ {expense.amount}
-                        </TableCell>
-                        <TableCell>{usersToString(expense.users)}</TableCell>
+          {/*Expense List View */}
+          <Main>
+            <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+              <TableContainer sx={{ maxHeight: 440 }}>
+                <Table stickyHeader aria-label="sticky table">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell colSpan={3} align="center"><h2>Expenses</h2></TableCell>
+                    </TableRow>
+                    <TableRow>
+                      {columns.map((column) => (
                         <TableCell
-                          align="right"
+                          key={column.id}
+                          align={column.align}
+                          style={{ minWidth: column.minWidth }}
                         >
-                          <IconButton onClick={() => handleEdit(expense._id)} color="warning"><EditIcon /></IconButton>
-                          <IconButton onClick={() => handleDelete(expense._id)} color="error"><DeleteIcon /></IconButton>
+                          {column.label}
                         </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        </Main>
-      </Box>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {expenses.map((expense) => {
+                      return (
+                        <TableRow
+                          hover role="checkbox"
+                          key={expense._id}
+                        >
+                          <TableCell>
+                            <Button> {expense.title}</Button>
+                          </TableCell>
+                          <TableCell>
+                            $ {expense.amount}
+                          </TableCell>
+                          <TableCell>{usersToString(expense.users)}</TableCell>
+                          <TableCell
+                            align="right"
+                          >
+                            <IconButton onClick={() => handleEdit(expense._id)} color="warning"><EditIcon /></IconButton>
+                            <IconButton onClick={() => handleDelete(expense._id)} color="error"><DeleteIcon /></IconButton>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          </Main>
+        </Box>
 
-      {/* Floating Action Button */}
-      <Fab
-        variant="extended"
-        color="primary"
-        aria-label="open drawer"
-        onClick={toggleBillForm}
-        sx={[
-          {
-            mr: 2,
-            margin: 0,
-            top: 'auto',
-            right: 20,
-            bottom: 20,
-            left: 'auto',
-            position: 'fixed',
-          },
-          isOpen && { display: 'none' },
-        ]}
-      >
-        Create Expense<AddIcon />
-      </Fab>
+        {/* Floating Action Button */}
+        <Fab
+          variant="extended"
+          color="primary"
+          aria-label="open drawer"
+          onClick={toggleForm}
+          sx={[
+            {
+              mr: 2,
+              margin: 0,
+              top: 'auto',
+              right: 20,
+              bottom: 20,
+              left: 'auto',
+              position: 'fixed',
+            },
+            isFormOpen && { display: 'none' },
+          ]}
+        >
+          Create Expense<AddIcon />
+        </Fab>
 
-    </div >
-  );
-};
+      </div >
+    );
+  };
 
-export default ExpenseList;
+  export default ExpenseList;
