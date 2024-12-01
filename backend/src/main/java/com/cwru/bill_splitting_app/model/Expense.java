@@ -19,15 +19,8 @@ public class Expense {
   @JsonSerialize(using = ObjectIdSerializer.class)
   @JsonDeserialize(using = ObjectIdDeserializer.class)
   private ObjectId _id;
-
   private String title;
   private double amount;
-
-  @JsonSerialize(using = ObjectIdSerializer.class)
-  @JsonDeserialize(using = ObjectIdDeserializer.class)
   private User paidBy;
-
-  @JsonSerialize(contentUsing = ObjectIdSerializer.class)
-  @JsonDeserialize(contentUsing = ObjectIdDeserializer.class)
   private List<User> users;
 }

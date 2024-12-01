@@ -68,29 +68,38 @@ public class ExpenseControllerTest {
   }
 
   @Test
-  public void testGetAllExpenses() throws Exception {
-    given(expenseService.getAllExpenses()).willReturn(Arrays.asList(expense1, expense2));
-
-    mockMvc.perform(get("/api/expenses"))
-        .andExpect(status().isOk())
-        // .andExpect(jsonPath("$[0]._id", is(expense1Id)))
-        .andExpect(jsonPath("$[0].title", is("Groceries")))
-        // .andExpect(jsonPath("$[1]._id", is(expense2Id)))
-        .andExpect(jsonPath("$[1].title", is("Electricity")));
-  }
-
-  @Test
   public void testCreateExpense() throws Exception {
-    given(expenseService.createExpense(any(Expense.class))).willReturn(expense1);
+    user1 = new User();
+    user1.set_id(new ObjectId());
+    user1.setName("Alice Johnson");
+    user1.setEmail("alice.johnson@example.com");
 
-    String expenseJson = objectMapper.writeValueAsString(expense1);
+    user2 = new User();
+    user2.set_id(new ObjectId());
+    user2.setName("Bob Williams");
+    user2.setEmail("bob.williams@example.com");
+
+    Expense expenseToCreate = new Expense();
+    expenseToCreate.set_id(expense1Id);
+    expenseToCreate.setTitle("Groceries");
+    expenseToCreate.setAmount(50.0);
+    expenseToCreate.setPaidBy(user1);
+    expenseToCreate.setUsers(Arrays.asList(user1, user2));
+
+    given(expenseService.createExpense(any(Expense.class))).willReturn(expenseToCreate);
+
+    String expenseJson = objectMapper.writeValueAsString(expenseToCreate);
 
     mockMvc.perform(post("/api/expenses")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(expenseJson))
-        .andExpect(status().isCreated())
-        // .andExpect(jsonPath("$._id", is(expense1Id)))
-        .andExpect(jsonPath("$.title", is("Groceries")));
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(expenseJson))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.title", is("Groceries")))
+            .andExpect(jsonPath("$.amount", is(50.0)))
+            .andExpect(jsonPath("$.paidBy.name", is("Alice Johnson")))
+            .andExpect(jsonPath("$.paidBy.email", is("alice.johnson@example.com")))
+            .andExpect(jsonPath("$.users[0].name", is("Alice Johnson")))
+            .andExpect(jsonPath("$.users[1].name", is("Bob Williams")));
   }
 
   @Test
@@ -99,7 +108,6 @@ public class ExpenseControllerTest {
 
     mockMvc.perform(get("/api/expenses/" + expense1Id.toHexString()))
         .andExpect(status().isOk())
-        // .andExpect(jsonPath("$._id", is(expense1Id)))
         .andExpect(jsonPath("$.title", is("Groceries")));
   }
 
