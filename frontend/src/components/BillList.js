@@ -114,12 +114,12 @@ const BillList = () => {
       let userNames = [];
       userNames = users.map((user) => {
         if (user) {
-          return user.userName;
+          return user.name;
         } else {
           return 'null';
         }
       })
-      return userNames.toString();
+      return userNames.join(', ');
     }
     return '';
   }
@@ -227,7 +227,7 @@ const BillList = () => {
                     return (
                       <TableRow hover role="checkbox">
                         <TableCell>
-                          <Link to={`/bill/${bill.id}`}>
+                          <Link to={`/bill/${bill._id}`}>
                             <Button>{bill.title}</Button>
                           </Link>
                         </TableCell>
@@ -235,8 +235,8 @@ const BillList = () => {
                         <TableCell
                           align="right"
                         >
-                          <IconButton onClick={() => handleEdit(bill.id)} color="warning"><EditIcon /></IconButton>
-                          <IconButton onClick={() => handleDelete(bill.id)} color="error"><DeleteIcon /></IconButton>
+                          <IconButton onClick={() => handleEdit(bill._id)} color="warning"><EditIcon /></IconButton>
+                          <IconButton onClick={() => handleDelete(bill._id)} color="error"><DeleteIcon /></IconButton>
                         </TableCell>
                       </TableRow>
                     );

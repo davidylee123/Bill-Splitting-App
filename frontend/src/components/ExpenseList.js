@@ -41,9 +41,9 @@ const ExpenseList = ({bill_id}) => {
   const getExpenses = async () => {
     try {
       const response = await api.get('/api/bills/' + bill_id);
-      console.log('displaying expenses:',response.data[0].expenses);
+      console.log('displaying expenses:',response.data.expenses);
       alert('Expenses fetched successfully!');
-      setExpenses(response.data[0].expenses)
+      setExpenses(response.data.expenses)
     } catch (error) {
       console.error('There was an error fetching the expenses!', error);
     }
@@ -130,14 +130,14 @@ const ExpenseList = ({bill_id}) => {
                     return (
                       <TableRow hover role="checkbox">
                         <TableCell>
-                          <Button> {expense.name}</Button>
+                          <Button> {expense.title}</Button>
                         </TableCell>
                         <TableCell>{usersToString(expense.splitBetween)}</TableCell>
                         <TableCell
                           align="right"
                         >
-                          <IconButton onClick={() => handleEdit(expense.id)} color="warning"><EditIcon /></IconButton>
-                          <IconButton onClick={() => handleDelete(expense.id)} color="error"><DeleteIcon /></IconButton>
+                          <IconButton onClick={() => handleEdit(expense._id)} color="warning"><EditIcon /></IconButton>
+                          <IconButton onClick={() => handleDelete(expense._id)} color="error"><DeleteIcon /></IconButton>
                         </TableCell>
                       </TableRow>
                     );

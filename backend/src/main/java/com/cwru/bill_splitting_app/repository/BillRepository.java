@@ -3,19 +3,23 @@ package com.cwru.bill_splitting_app.repository;
 import com.cwru.bill_splitting_app.model.Bill;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
+import org.springframework.stereotype.Repository;
+import org.bson.types.ObjectId;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface BillRepository extends MongoRepository<Bill, String> {
+@Repository
+public interface BillRepository extends MongoRepository<Bill, ObjectId> {
 
-    @Query("{ 'id': ?0 }")
-    Optional<Bill> findByCustomId(String id);
+    @Query("{ 'expenses._id': ?0 }")
+    Optional<Bill> findByExpensesId(ObjectId expenseId);
 
-    @Query("{ 'expenses.id': ?0 }")
-    Optional<Bill> findByExpensesId(String expenseId);
+    @Query("{ 'users._id': ?0 }")
+    Optional<Bill> findByUsersId(ObjectId userId);
 
-    Optional<Bill> findByUsersId(String userId);
+    @Query("{'_id': ?0}")
+    Optional<Bill> findById(ObjectId id);
 
-    List<Bill> findAllById(String id);
+    List<Bill> findByTitle(String title);
 }
