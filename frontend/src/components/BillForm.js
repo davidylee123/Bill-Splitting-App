@@ -28,8 +28,9 @@ const BillForm = ({isOpen, friends, toggler, bills, setBills}) => {
   };
 
   const handleFriendSelect = (name) => {
-    setBillFriends(friends.map(f => {
-      if(f.name === name){
+
+    setBillFriends(friends.map((f) => {
+      if(f.name == name){
         f.included = !f.included
       }   
   }))};
@@ -51,7 +52,16 @@ const BillForm = ({isOpen, friends, toggler, bills, setBills}) => {
     e.preventDefault();
     checkForm();
     if(!titleErr && !friendsErr){
-      const newBill = {title: title, expenses: [], users: billFriends};
+      //make friends array of friend id's
+      // for some reason included is always false, so this doesn't work. 
+      // trying to use billFriends instead of friends doesn't work, for some reason it doesn't even recognize the term 'included'
+      // let bFriends = [];
+      // friends.map((f) => {
+      //   if(f.included){
+      //     bFriends.push(f);
+      //   }
+      // });
+      const newBill = {title: title, expenses: [], users: friends};
       try {
         const response = await axios.post('http://localhost:8080/api/bills', newBill);
         alert('Bill created successfully!');

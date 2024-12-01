@@ -81,7 +81,7 @@ const BillList = () => {
       users.data.map((u) => {
         thisUser.data.friends.map((f) => {
           if(u._id == f){
-            friendsArray.push({ name: u.name, included: false });
+            friendsArray.push({ name: u.name, included: false, _id: u._id });
           }
         })
       });
@@ -132,7 +132,7 @@ const BillList = () => {
         let userid = '64c87da267e2a12b3c5d6701';
         const result = await api.post('/api/users/' + userid + '/friends/' + friend._id);
 
-        setFriends([...friends, { name: newFriend, included: false }]);
+        setFriends([...friends, { name: newFriend, included: false, _id: friend._id }]);
         setNewFriend('');
         setFriendAddSuccess(true);
       }else{
