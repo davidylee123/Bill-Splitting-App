@@ -68,8 +68,34 @@ const BillList = () => {
     }
   }
 
+  const getFriends = async () => {
+    let userid = '64c87da267e2a12b3c5d6701';
+    //get friends, which is a list of object ids
+    //get all users (just so the number of API queries is constant instead of linear, consider changing in the future for security reasons)
+    // if friend id == user id
+    //      setFriends([...friends, { name: friend.name, included: false }]);
+    try {
+      const thisUser = await api.get('/api/users/' + userid);
+      const users = await api.get('/api/users');
+      let friendsArray = [];
+      users.data.map((u) => {
+        thisUser.data.friends.map((f) => {
+          if(u._id == f){
+            friendsArray.push({ name: u.name, included: false });
+          }
+        })
+      });
+
+      setFriends(friendsArray);
+      
+    } catch (error) {
+      console.error('There was an error fetching the friends!', error);
+    }
+  }
+
   useEffect(() => {
     getBills();
+    getFriends();
   }, [])
 
   const toggleBillForm = () => {
