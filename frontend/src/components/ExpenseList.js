@@ -22,12 +22,6 @@ import { Main, AppBar, drawerWidth } from '../Theme';
 import BillForm from './BillForm';
 import api from '../services/api';
 
-const columns = [
-  { id: 'title', label: 'Title', minWidth: 50, align: "left" },
-  { id: 'friends', label: 'Friends', minWidth: 50, align: "left" },
-  { id: 'id', label: 'Edit', minWidth: 50, align: "right" },
-];
-
 const ExpenseList = ({bill_id}) => {
 
   //for form drawer
@@ -57,7 +51,6 @@ const ExpenseList = ({bill_id}) => {
     setIsOpen(!isOpen);
   };
 
-
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -67,8 +60,17 @@ const ExpenseList = ({bill_id}) => {
     setPage(0);
   };
 
-  const handleDelete = (n) => {
-    setExpenses(expenses.filter((f) => f.id !== n));
+  const handleDelete = async (id) => {
+    try {
+      const response = await api.delete('/api/expenses/' + id)
+      if (response.status == 200) {
+        alert('Expense deleted successfully!');
+        setExpenses(expenses.filter((f) => f.id !== id));
+      }
+    }
+    catch (error) {
+      console.error('There was an error deleting the expense!', error);
+    }
   }
 
   const handleEdit = (n) => {
@@ -83,15 +85,22 @@ const ExpenseList = ({bill_id}) => {
       let userNames = [];
       userNames = users.map((user) => {
         if (user) {
-          return user.userName;
+          return user.name;
         } else {
           return 'null';
         }
       })
-      return userNames.toString();
+      return userNames.join(', ');
     }
     return '';
   }
+
+  const columns = [
+    { id: 'title', label: 'Title', minWidth: 50, align: "left" },
+    { id: 'amount', label: 'Cost', minWidth: 50, align: "left"},
+    { id: 'splitBetween', label: 'Split To', minWidth: 50, align: "left" },
+    { id: 'id', label: 'Edit', minWidth: 50, align: "right" },
+  ];
 
   return (
     <div>
@@ -128,11 +137,17 @@ const ExpenseList = ({bill_id}) => {
                 <TableBody>
                   {expenses.map((expense) => {
                     return (
-                      <TableRow hover role="checkbox">
+                      <TableRow
+                        hover role="checkbox"
+                        key={expense._id}
+                      >
                         <TableCell>
                           <Button> {expense.title}</Button>
                         </TableCell>
-                        <TableCell>{usersToString(expense.splitBetween)}</TableCell>
+                        <TableCell>
+                          $ {expense.amount}
+                        </TableCell>
+                        <TableCell>{usersToString(expense.users)}</TableCell>
                         <TableCell
                           align="right"
                         >
@@ -145,15 +160,6 @@ const ExpenseList = ({bill_id}) => {
                 </TableBody>
               </Table>
             </TableContainer>
-            <TablePagination
-              rowsPerPageOptions={[10, 25, 100]}
-              component="div"
-              count={expenses.length}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-            />
           </Paper>
         </Main>
       </Box>
