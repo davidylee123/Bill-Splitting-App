@@ -95,7 +95,7 @@ const BillList = () => {
     try {
       const response = await api.get('/api/users');
       let friend = null;
-      response.data.map((f) => {if(f.userName == newFriend){
+      response.data.map((f) => {if(f.name == newFriend){
           friend = f;
         }}
         );
@@ -103,9 +103,8 @@ const BillList = () => {
         alert('Friend found successfully!');
         
         //assume we know our current user id?
-        //const thisUser = await api.get('api/users/' );//+ userid);
-        //thisUser.data.friends = [...thisUser.data.friends, friend.data.id];
-        //const result = await api.put('api/users' + userid, thisUser);
+        let userid = '64c87da267e2a12b3c5d6701';
+        const result = await api.post('/api/users/' + userid + '/friends/' + friend._id);
 
         setFriends([...friends, { name: newFriend, included: false }]);
         setNewFriend('');
