@@ -146,15 +146,21 @@ const BillList = () => {
 
   }
 
-  const handleDelete = (n) => {
-    setBills(bills.filter((f) => f.id !== n));
+  const handleDelete = async (n) => {
+    try {
+      const response = await api.delete('/api/bills/' + n);
+      setBills(bills.filter((f) => f._id !== n));
+    } catch (error) {
+      console.error('There was an error deleting the bill!', error);
+    }
+
+    
   }
 
-  const handleEdit = (n) => {
-    //setTitle(col.title);
-    //setAmount(col.amount);
-
-    setBills(bills.filter((f) => f.id !== n));
+  const handleEdit = async(n) => {
+    //toggle form
+    toggleBillForm();
+    setBills(bills.filter((f) => f._id !== n));
   }
 
   const usersToString = (users) => {
