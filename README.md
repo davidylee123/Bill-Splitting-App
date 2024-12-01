@@ -95,23 +95,23 @@ The backend exposes the following REST API endpoints:
 
 - `GET /api/users` - Retrieve all users
 - `POST /api/users` - Create a new user
-- `GET /api/users/{id}` - Retrieve a user by ID
-- `PUT /api/users/{id}` - Update user information by ID
-- `DELETE /api/users/{id}` - Delete a user by ID
+- `POST /api/users/{id}/friends/{friendId}` - Add a friend to user by user and friend ObjectId
+- `GET /api/users/{id}` - Retrieve a user by ObjectId
+- `PUT /api/users/{id}` - Update user information by ObjectId
+- `DELETE /api/users/{id}` - Delete a user by ObjectId
 
 ### Bills
 
 - `GET /api/bills` - Retrieve all bills
 - `POST /api/bills` - Create a new bill
-- `GET /api/bills/{id}` - Retrieve a bill by ID
-- `PUT /api/bills/{id}` - Update a bill by ID
-- `DELETE /api/bills/{id}` - Delete a bill by ID
+- `GET /api/bills/{id}` - Retrieve a bill by ObjectId
+- `PUT /api/bills/{id}` - Update a bill by ObjectId
+- `DELETE /api/bills/{id}` - Delete a bill by ObjectId
 
 ### Expenses
 
 - `POST /api/expenses` - Create a new expense
 - `GET /api/expenses` - Retrieve all expenses
-- `GET /api/expenses/{id}` - Retrieve an expense by ID
-- `PUT /api/expenses/{id}` - Update an expense by ID
-- `DELETE /api/expenses/{id}` - Delete an expense by ID
-- `GET /api/expenses/customId/{customId}` - Retrieve an expense by custom ID
+- `GET /api/expenses/{id}` - Retrieve an expense by ObjectId
+- `PUT /api/expenses/{id}` - Update an expense by ObjectId
+- `DELETE /api/expenses/{id}` - Delete an expense by ObjectId
