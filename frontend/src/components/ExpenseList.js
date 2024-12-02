@@ -6,7 +6,6 @@ import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
-import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Button from '@mui/material/Button';
 
@@ -19,78 +18,47 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import IconButton from '@mui/material/IconButton';
 import { Main, AppBar, drawerWidth } from '../Theme';
-import BillForm from './BillForm';
+import ExpenseForm from './ExpenseForm';
 import api from '../services/api';
 
 const ExpenseList = ({ bill_id }) => {
 
-  //for form drawer
   const [isFormOpen, setIsFormOpen] = React.useState(false);
   const [expenses, setExpenses] = useState([]);
-  const [friends, setFriends] = useState([{ name: 'Andrew', included: false }, { name: 'Adriana', included: false }]);
+  const [users, setUsers] = useState([]);
+  const [currentExpense, setCurrentExpense] = useState({});
+  const [expenseUsers, setExpenseUsers] = useState([]);
+  const [isEditingExpense, setIsEditingExpense] = useState(false);
 
-  const getExpenses = async () => {
+  const getBillData = async () => {
     try {
       const response = await api.get('/api/bills/' + bill_id);
       console.log('displaying expenses:', response.data.expenses);
       alert('Expenses fetched successfully!');
       setExpenses(response.data.expenses)
+      setUsers(response.data.users)
     } catch (error) {
       console.error('There was an error fetching the expenses!', error);
     }
   }
 
   useEffect(() => {
-    getExpenses();
+    getBillData();
   }, [])
 
   const toggleForm = () => {
     setIsFormOpen(!isFormOpen);
   };
 
-  const handleAdd = async (newExpense) => {
-    try {
-      // get the current bill
-      const currentBill = await api.get('api/bills/' + bill_id);
-      const newBill = currentBill.data;
-      // add new expense to the bill
-      newBill.expenses = [...newBill.expenses, newExpense];
-      const response = await api.put(`/api/bills/${bill_id}`, newBill);
-      // update the state if success
-      if (response.status === 200) {
-        setExpenses(response.data.expenses);
-        console.log("Expense added successfully!");
-      } else {
-        console.error("Error adding expense!", response.error);
-      }
-    } catch (error) {
-      console.error('There was an error adding the expense!', error);
-    }
+  const activateEditForm = (expense) => {
+    setCurrentExpense(expense);
+    setIsEditingExpense(true);
+    toggleForm();
   }
 
-  const handleEdit = async (expenseId, newExpense) => {
-    try {
-      // get the current bill
-      const currentBill = await api.get('api/bills/' + bill_id);
-      const newBill = currentBill.data;
-      // edit the expense on the bill
-      const expenseIndex = newBill.expenses.findIndex((expense) => expense._id.toString() === expenseId);
-      if (expenseIndex !== -1) {
-        newBill.expenses[expenseIndex] = newExpense;
-        const response = await api.put(`/api/bills/${bill_id}`, newBill);
-        // update the state if success
-        if (response.status === 200) {
-          setExpenses(response.data.expenses);
-          console.log("Expense added successfully!");
-        } else {
-          console.error("Error adding expense!", response.error);
-        }
-      } else {
-        console.error('Expense not found!');
-      }
-    } catch (error) {
-      console.error('There was an error adding the expense!', error);
-    }
+  const activateAddForm = () => {
+    setIsEditingExpense(false);
+    toggleForm();
   }
 
   const handleDelete = async (expenseId) => {
@@ -144,7 +112,7 @@ const ExpenseList = ({ bill_id }) => {
             </Toolbar>
           </AppBar>
           {/* Create New Expense Form */}
-          <BillForm isOpen={isFormOpen} friends={friends} expenses={expenses} setExpenses={setExpenses} toggler={toggleForm} />
+          <ExpenseForm isOpen={isFormOpen} currentExpense={currentExpense} setExpenses={setExpenses} toggler={toggleForm} bill_id={bill_id} billUsers={users} isEditing={isEditingExpense}/>
 
           {/*Expense List View */}
           <Main>
@@ -184,7 +152,7 @@ const ExpenseList = ({ bill_id }) => {
                           <TableCell
                             align="right"
                           >
-                            <IconButton onClick={() => handleEdit(expense._id)} color="warning"><EditIcon /></IconButton>
+                            <IconButton onClick={() => activateEditForm(expense)} color="warning"><EditIcon /></IconButton>
                             <IconButton onClick={() => handleDelete(expense._id)} color="error"><DeleteIcon /></IconButton>
                           </TableCell>
                         </TableRow>
@@ -202,7 +170,7 @@ const ExpenseList = ({ bill_id }) => {
           variant="extended"
           color="primary"
           aria-label="open drawer"
-          onClick={toggleForm}
+          onClick={() => activateAddForm()}
           sx={[
             {
               mr: 2,
