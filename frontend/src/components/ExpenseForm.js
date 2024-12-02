@@ -18,42 +18,23 @@ import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { drawerWidth } from '../Theme';
 
-const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentExpense, setExpenses }) => {
+const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentExpense, expenseSplitUsers, setExpenses }) => {
 
-  const [title, setTitle] = useState('');
-  const [amount, setAmount] = useState(0);
-  const [users, setUsers] = useState([]);
-  const [paidBy, setPaidBy] = useState(undefined);
+  const [title, setTitle] = useState(currentExpense.title);
+  const [amount, setAmount] = useState(currentExpense.amount);
+  const [users, setUsers] = useState(expenseSplitUsers);
+  const [paidBy, setPaidBy] = useState(currentExpense.paidBy);
   const [titleErr, setTitleErr] = useState(false);
   const [amountErr, setAmountErr] = useState(false);
   const [usersErr, setUsersErr] = useState(false);
   const [paidByErr, setPaidByErr] = useState(false);
 
-  const setupForm = () => {
-    if (isEditing) {
-      setTitle(currentExpense.title);
-      setPaidBy(currentExpense.paidBy);
-      setAmount(currentExpense.amount);
-      setUsers(billUsers.map(billUser => ({ id: billUser._id, name: billUser.name, included: currentExpense.users.some(expenseUser => expenseUser._id === billUser._id) })))
-    } else {
-      setTitle('');
-      setPaidBy(undefined);
-      setAmount(0);
-      setUsers(billUsers.map(billUser => ({ id: billUser._id, name: billUsers.name, included: false })))
-      console.log('setting up users for create')
-      console.log(JSON.stringify(users));
-    }
-  }
-
-  useEffect(() => {
-    setupForm();
-  })
-
   const handleDrawerClose = () => {
     toggler();
-    setupForm();
     setTitleErr(false);
     setUsersErr(false);
+    setAmountErr(false);
+    setPaidByErr(false);
   };
 
   const handleUserSelect = (userId) => {
@@ -92,15 +73,22 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
     checkForm();
     if (isEditing) {
       const newExpense = {
+        _id: currentExpense._id,
         title: title,
         amount: amount,
         paidBy: paidBy,
         users: filterObjectsById(billUsers, users)
       }
       console.log(JSON.stringify(newExpense));
-      // handleEdit();
+      handleEdit(currentExpense._id, newExpense);
     } else {
-      handleAdd();
+      const newExpense = {
+        title: title,
+        amount: amount,
+        paidBy: paidBy,
+        users: filterObjectsById(billUsers, users)
+      }
+      handleAdd(newExpense);
     }
   }
 

@@ -26,8 +26,13 @@ const ExpenseList = ({ bill_id }) => {
   const [isFormOpen, setIsFormOpen] = React.useState(false);
   const [expenses, setExpenses] = useState([]);
   const [users, setUsers] = useState([]);
-  const [currentExpense, setCurrentExpense] = useState({});
-  const [expenseUsers, setExpenseUsers] = useState([]);
+  const [currentExpense, setCurrentExpense] = useState({
+      title: '',
+      paidBy: undefined,
+      amount: 0,
+      users: [], 
+    });
+  const [expenseSplitUsers, setExpenseSplitUsers] = useState([]);
   const [isEditingExpense, setIsEditingExpense] = useState(false);
 
   const getBillData = async () => {
@@ -51,13 +56,22 @@ const ExpenseList = ({ bill_id }) => {
   };
 
   const activateEditForm = (expense) => {
-    setCurrentExpense(expense);
     setIsEditingExpense(true);
+    setCurrentExpense(expense);
+    setExpenseSplitUsers(users.map(user => ({ id: user._id, name: user.name, included: currentExpense.users.some(expenseUser => expenseUser._id === user._id) })))
     toggleForm();
+    console.log('ExpenseSplitUsers: ', expenseSplitUsers)
   }
 
   const activateAddForm = () => {
     setIsEditingExpense(false);
+    setCurrentExpense({
+      title: '',
+      paidBy: undefined,
+      amount: 0,
+      users: [], 
+    });
+    setExpenseSplitUsers(users.map(user => ({ id: user._id, name: user.name, included: false })))
     toggleForm();
   }
 
@@ -99,6 +113,7 @@ const ExpenseList = ({ bill_id }) => {
     const columns = [
       { id: 'title', label: 'Title', minWidth: 50, align: "left" },
       { id: 'amount', label: 'Cost', minWidth: 50, align: "left" },
+      { id: 'paidBy', label: 'Paid by', minWidth: 50, align: "left" },
       { id: 'splitBetween', label: 'Split To', minWidth: 50, align: "left" },
       { id: 'id', label: 'Edit', minWidth: 50, align: "right" },
     ];
@@ -112,7 +127,7 @@ const ExpenseList = ({ bill_id }) => {
             </Toolbar>
           </AppBar>
           {/* Create New Expense Form */}
-          <ExpenseForm isOpen={isFormOpen} currentExpense={currentExpense} setExpenses={setExpenses} toggler={toggleForm} bill_id={bill_id} billUsers={users} isEditing={isEditingExpense}/>
+          <ExpenseForm isOpen={isFormOpen} currentExpense={currentExpense} setExpenses={setExpenses} toggler={toggleForm} bill_id={bill_id} billUsers={users} isEditing={isEditingExpense} expenseSplitUsers={expenseSplitUsers}/>
 
           {/*Expense List View */}
           <Main>
@@ -147,6 +162,9 @@ const ExpenseList = ({ bill_id }) => {
                           </TableCell>
                           <TableCell>
                             $ {expense.amount}
+                          </TableCell>
+                          <TableCell>
+                            {expense.paidBy.name}
                           </TableCell>
                           <TableCell>{usersToString(expense.users)}</TableCell>
                           <TableCell
