@@ -40,6 +40,8 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
       setPaidBy(undefined);
       setAmount(0);
       setUsers(billUsers.map(billUser => ({ id: billUser._id, name: billUsers.name, included: false })))
+      console.log('setting up users for create')
+      console.log(JSON.stringify(users));
     }
   }
 
@@ -55,7 +57,7 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
   };
 
   const handleUserSelect = (userId) => {
-    console.log(users.toString());
+    console.log(JSON.stringify(users));
     if (!users || users.length === 0) {
       return; // Do nothing if users is empty
     }
@@ -85,7 +87,8 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
     return list1.filter(item => idsInList2.has(item._id));
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = (e) => {
+    e.preventDefault()
     checkForm();
     if (isEditing) {
       const newExpense = {
@@ -94,7 +97,7 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
         paidBy: paidBy,
         users: filterObjectsById(billUsers, users)
       }
-      console.log(newExpense);
+      console.log(JSON.stringify(newExpense));
       // handleEdit();
     } else {
       handleAdd();
@@ -161,7 +164,7 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
       open={isOpen}
     >
       <Divider />
-      <form onSubmit={() => handleSubmit()}>
+      <form onSubmit={(e) => handleSubmit(e)}>
         <Stack spacing={1} direction="column">
           <Stack spacing={1} direction="row">
             <h2 align="center">
