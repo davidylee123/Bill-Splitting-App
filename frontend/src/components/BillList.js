@@ -68,8 +68,34 @@ const BillList = () => {
     }
   }
 
+  const getFriends = async () => {
+    let userid = '64c87da267e2a12b3c5d6701';
+    //get friends, which is a list of object ids
+    //get all users (just so the number of API queries is constant instead of linear, consider changing in the future for security reasons)
+    // if friend id == user id
+    //      setFriends([...friends, { name: friend.name, included: false }]);
+    try {
+      const thisUser = await api.get('/api/users/' + userid);
+      const users = await api.get('/api/users');
+      let friendsArray = [];
+      users.data.map((u) => {
+        thisUser.data.friends.map((f) => {
+          if(u._id == f){
+            friendsArray.push({ name: u.name, included: false, _id: u._id });
+          }
+        })
+      });
+
+      setFriends(friendsArray);
+      
+    } catch (error) {
+      console.error('There was an error fetching the friends!', error);
+    }
+  }
+
   useEffect(() => {
     getBills();
+    getFriends();
   }, [])
 
   const toggleBillForm = () => {
@@ -87,26 +113,54 @@ const BillList = () => {
   };
 
 
-  const handleFriendAdd = () => {
-    if (newFriend.length >= 2) {
-      setFriends([...friends, { name: newFriend, included: false }]);
-      setNewFriend('');
-      setFriendAddSuccess(true);
-    } else {
+  const handleFriendAdd = async () => {
+    //alter this to:
+    //  try to fetch user with username newFriend
+    //  if user exists, add friend.ObjectId to user.friends list
+    //  otherwise, throw error
+    try {
+      const response = await api.get('/api/users');
+      let friend = null;
+      response.data.map((f) => {if(f.name == newFriend){
+          friend = f;
+        }}
+        );
+      if(friend != null){
+        alert('Friend found successfully!');
+        
+        //assume we know our current user id?
+        let userid = '64c87da267e2a12b3c5d6701';
+        const result = await api.post('/api/users/' + userid + '/friends/' + friend._id);
+
+        setFriends([...friends, { name: newFriend, included: false, _id: friend._id }]);
+        setNewFriend('');
+        setFriendAddSuccess(true);
+      }else{
+        alert('Friend could not be found');
+        setFriendAddErr(true);
+      }
+    } catch (error) {
+      console.error('There was an error in finding this user!', error);
       setFriendAddErr(true);
     }
 
   }
 
-  const handleDelete = (n) => {
-    setBills(bills.filter((f) => f.id !== n));
+  const handleDelete = async (n) => {
+    try {
+      const response = await api.delete('/api/bills/' + n);
+      setBills(bills.filter((f) => f._id !== n));
+    } catch (error) {
+      console.error('There was an error deleting the bill!', error);
+    }
+
+    
   }
 
-  const handleEdit = (n) => {
-    //setTitle(col.title);
-    //setAmount(col.amount);
-
-    setBills(bills.filter((f) => f.id !== n));
+  const handleEdit = async(n) => {
+    //toggle form
+    toggleBillForm();
+    setBills(bills.filter((f) => f._id !== n));
   }
 
   const usersToString = (users) => {
