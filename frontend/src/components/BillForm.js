@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
@@ -14,11 +14,15 @@ import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { drawerWidth } from '../Theme';
 
-const BillForm = ({isOpen, friends, toggler, bills, setBills}) => {
-  const [title, setTitle] = useState('');
+const BillForm = ({isOpen, friends, toggler, bills, setBills, currentBill, isEditing}) => {
+  const [title, setTitle] = useState(currentBill.title);
   const [billFriends, setBillFriends] = useState([]);
   const [titleErr, setTitleErr] = useState(false);
   const [friendsErr, setFriendsErr] = useState(false);
+
+  useEffect(() => {
+    setBillFriends(friends);
+  }, [friends])
 
   const handleDrawerClose = () => {
     toggler();
@@ -27,13 +31,14 @@ const BillForm = ({isOpen, friends, toggler, bills, setBills}) => {
     setFriendsErr(false);
   };
 
-  const handleFriendSelect = (name) => {
-
-    setBillFriends(friends.map((f) => {
-      if(f.name == name){
-        f.included = !f.included
-      }   
-  }))};
+  const handleFriendSelect = (userId) => {
+    let newUsers = billFriends.map(user => ({
+      _id: user._id,
+      name: user.name,
+      included: (user._id == userId)? !user.included : user.included
+    }))
+    setBillFriends(newUsers);
+  };
 
   const checkForm = () => {
     if(title.length < 1){
@@ -52,24 +57,21 @@ const BillForm = ({isOpen, friends, toggler, bills, setBills}) => {
     e.preventDefault();
     checkForm();
     if(!titleErr && !friendsErr){
-      //make friends array of friend id's
-      // for some reason included is always false, so this doesn't work. 
-      // trying to use billFriends instead of friends doesn't work, for some reason it doesn't even recognize the term 'included'
-      // let bFriends = [];
-      // friends.map((f) => {
-      //   if(f.included){
-      //     bFriends.push(f);
-      //   }
-      // });
-      const newBill = {title: title, expenses: [], users: friends};
+      let bFriends = [];
+      billFriends.map((f) => {
+        if(f.included){
+          bFriends.push(f);
+        }
+      });
+      const newBill = {title: title, expenses: [], users: bFriends};
       try {
         const response = await axios.post('http://localhost:8080/api/bills', newBill);
         alert('Bill created successfully!');
         console.log(response.data);
+        setBills([...bills, response.data]);
       } catch (error) {
         console.error('There was an error creating the bill!', error);
       }
-      setBills([...bills, newBill]);
       setTitle('');
       setBillFriends([]);
     }
@@ -117,10 +119,10 @@ const BillForm = ({isOpen, friends, toggler, bills, setBills}) => {
             />}
           {friendsErr ?
             <FormGroup >
-              {friends.map((friend) => (
+              {billFriends.map((friend) => (
                 <FormControlLabel
                   value={friend.included}
-                  onChange={(e) => handleFriendSelect(e.target, friend.name)}
+                  onChange={(e) => handleFriendSelect(e.target, friend._id)}
                   control={<Checkbox icon={<PersonOutlineOutlinedIcon color="error" />}
                     checkedIcon={<PersonAddIcon />} />}
                   label={friend.name} />
@@ -128,10 +130,10 @@ const BillForm = ({isOpen, friends, toggler, bills, setBills}) => {
             </FormGroup>
             :
             <FormGroup >
-              {friends.map((friend) => (
+              {billFriends.map((friend) => (
                 <FormControlLabel
                   value={friend.included}
-                  onChange={(e) => handleFriendSelect(e.target, friend.name)}
+                  onChange={(e) => handleFriendSelect(e.target, friend._id)}
                   control={<Checkbox icon={<PersonOutlineOutlinedIcon />}
                     checkedIcon={<PersonAddIcon />} />}
                   label={friend.name} />
