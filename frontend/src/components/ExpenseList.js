@@ -110,6 +110,14 @@ const ExpenseList = ({ bill_id }) => {
       return '';
     }
 
+    const calculateTotal = () => {
+      let total = 0;
+      expenses.forEach((expense) => {
+        total += expense.amount;
+      });
+      return total;
+    }
+
     const columns = [
       { id: 'title', label: 'Title', minWidth: 50, align: "left" },
       { id: 'amount', label: 'Cost', minWidth: 50, align: "left" },
@@ -136,7 +144,9 @@ const ExpenseList = ({ bill_id }) => {
                 <Table stickyHeader aria-label="sticky table">
                   <TableHead>
                     <TableRow>
-                      <TableCell colSpan={3} align="center"><h2>Expenses</h2></TableCell>
+                      <TableCell align="left"><h2>Expenses</h2></TableCell>
+                      <TableCell align="center"><h2>Total: $ {calculateTotal()}</h2></TableCell>
+                      <TableCell align="right"><h2>Your Share: $ {Math.round(calculateTotal() / (users.length + 1) * 100)/100}</h2></TableCell>
                     </TableRow>
                     <TableRow>
                       {columns.map((column) => (
