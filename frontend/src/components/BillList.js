@@ -57,6 +57,12 @@ const BillList = () => {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
+  const [currentBill, setCurrentBill] = useState({
+    title: '',
+    users: [], 
+  });
+  const [isEditingBill, setIsEditingBill] = useState(false);
+
   const getBills = async () => {
     try {
       const response = await api.get('/api/bills');
@@ -157,10 +163,19 @@ const BillList = () => {
     
   }
 
-  const handleEdit = async(n) => {
-    //toggle form
+  const handleEdit = (bill) => {
+    setIsEditingBill(true);
+    setCurrentBill(bill);
     toggleBillForm();
-    setBills(bills.filter((f) => f._id !== n));
+  }
+
+  const handleAdd = () => {
+    setIsEditingBill(false);
+    setCurrentBill({
+      title: '',
+      users: [], 
+    });
+    toggleBillForm();
   }
 
   const usersToString = (users) => {
@@ -229,7 +244,7 @@ const BillList = () => {
           {/* Add friend success notif */}
           <Drawer
             anchor='top'
-            isOpen={friendAddSuccess}
+            open={friendAddSuccess}
             onClose={() => { setFriendAddSuccess(false) }}
           >
             <Stack spacing={1} direction="row" sx={{ justifyContent: "center", alignItems: "center", }}>
@@ -241,7 +256,7 @@ const BillList = () => {
           {/* Add friend err notif */}
           <Drawer
             anchor='top'
-            isOpen={friendAddErr}
+            open={friendAddErr}
             onClose={() => { setFriendAddErr(false) }}
           >
             <Stack spacing={1} direction="row" sx={{ justifyContent: "center", alignItems: "center", }}>
@@ -253,7 +268,7 @@ const BillList = () => {
         </Drawer>
 
         {/* Create New Bill Form */}
-        <BillForm isOpen={isOpen} friends={friends} bills={bills} setBills={setBills} toggler={toggleBillForm} />
+        <BillForm isOpen={isOpen} friends={friends} bills={bills} setBills={setBills} toggler={toggleBillForm} currentBill={currentBill} isEditing={isEditingBill} setFriends={setFriends}/>
 
         {/* Bill List View */}
         <Main open={isOpen}>
@@ -292,7 +307,7 @@ const BillList = () => {
                         <TableCell
                           align="right"
                         >
-                          <IconButton onClick={() => handleEdit(bill._id)} color="warning"><EditIcon /></IconButton>
+                          <IconButton onClick={() => handleEdit(bill)} color="warning"><EditIcon /></IconButton>
                           <IconButton onClick={() => handleDelete(bill._id)} color="error"><DeleteIcon /></IconButton>
                         </TableCell>
                       </TableRow>
@@ -319,7 +334,7 @@ const BillList = () => {
         variant="extended"
         color="primary"
         aria-label="open drawer"
-        onClick={toggleBillForm}
+        onClick={handleAdd}
         sx={[
           {
             mr: 2,

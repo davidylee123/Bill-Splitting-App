@@ -94,18 +94,21 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
 
   const handleAdd = async (newExpense) => {
     try {
+      // create the expense
+      const expenseResponse = await api.post('/api/expenses', newExpense);
+      console.log('new expense:', expenseResponse.data);
       // get the current bill
       const currentBill = await api.get('api/bills/' + bill_id);
       const newBill = currentBill.data;
       // add new expense to the bill
-      newBill.expenses = [...newBill.expenses, newExpense];
-      const response = await api.put(`/api/bills/${bill_id}`, newBill);
+      newBill.expenses = [...newBill.expenses, expenseResponse.data];
+      const billResponse = await api.put(`/api/bills/${bill_id}`, newBill);
       // update the state if success
-      if (response.status === 200) {
-        setExpenses(response.data.expenses);
+      if (billResponse.status === 200) {
+        setExpenses(billResponse.data.expenses);
         console.log("Expense added successfully!");
       } else {
-        console.error("Error adding expense!", response.error);
+        console.error("Error adding expense!", billResponse.error);
       }
     } catch (error) {
       console.error('There was an error adding the expense!', error);
