@@ -18,11 +18,8 @@ import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { drawerWidth } from '../Theme';
 
-const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentExpense, users, setUsers, setExpenses }) => {
+const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentExpense, setCurrentExpense, users, setUsers, setExpenses }) => {
 
-  const [title, setTitle] = useState(currentExpense.title);
-  const [amount, setAmount] = useState(currentExpense.amount);
-  const [paidBy, setPaidBy] = useState(currentExpense.paidBy);
   const [titleErr, setTitleErr] = useState(false);
   const [amountErr, setAmountErr] = useState(false);
   const [usersErr, setUsersErr] = useState(false);
@@ -51,7 +48,7 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
   }
 
   const checkForm = () => {
-    if (title.length < 1) {
+    if (currentExpense.title.length < 1) {
       setTitleErr(true);
     } else {
       setTitleErr(false);
@@ -74,18 +71,18 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
     if (isEditing) {
       const newExpense = {
         _id: currentExpense._id,
-        title: title,
-        amount: amount,
-        paidBy: paidBy,
+        title: currentExpense.title,
+        amount: currentExpense.amount,
+        paidBy: currentExpense.paidBy,
         users: filterObjectsById(billUsers, users)
       }
       console.log(JSON.stringify(newExpense));
       handleEdit(currentExpense._id, newExpense);
     } else {
       const newExpense = {
-        title: title,
-        amount: amount,
-        paidBy: paidBy,
+        title: currentExpense.title,
+        amount: currentExpense.amount,
+        paidBy: currentExpense.paidBy,
         users: filterObjectsById(billUsers, users)
       }
       handleAdd(newExpense);
@@ -173,15 +170,15 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
               helperText="Please enter a title."
               variant="outlined"
               placeholder="Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              value={currentExpense.title}
+              onChange={(e) => currentExpense.setTitle(e.target.value)}
             />
             :
             <TextField
               variant="outlined"
               placeholder="Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              value={currentExpense.title}
+              onChange={(e) => currentExpense.setTitle(e.target.value)}
             />}
           <FormLabel>Amount</FormLabel>
           {amountErr ?
@@ -190,29 +187,29 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
               helperText="Please enter a cost."
               variant="outlined"
               placeholder="Cost"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              value={currentExpense.amount}
+              onChange={(e) => currentExpense.setAmount(e.target.value)}
             />
             :
             <TextField
               variant="outlined"
               placeholder="Cost"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              value={currentExpense.amount}
+              onChange={(e) => currentExpense.setAmount(e.target.value)}
             />}
           {paidByErr ?
             <FormControl>
               <FormLabel id="select_paidby_label">Paid by:</FormLabel>
               <RadioGroup
                 aria-labelledby="select_paidby_label"
-                defaultValue={paidBy ? paidBy._id : undefined}
+                defaultValue={currentExpense.paidBy ? currentExpense.paidBy._id : undefined}
               >
                 {billUsers.map((billUser) => (
                   <FormControlLabel
                     key={billUser._id}
                     value={billUser._id}
                     control={<Radio color="error" />}
-                    onChange={(e) => setPaidBy(billUsers.find(u => u._id === e.target.value))}
+                    onChange={(e) => currentExpense.setPaidBy(billUsers.find(u => u._id === e.target.value))}
                     label={billUser.name} />
                 ))}
               </RadioGroup >
@@ -222,14 +219,14 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
               <FormLabel id="select_paidby_label">Paid by:</FormLabel>
               <RadioGroup
                 aria-labelledby="select_paidby_label"
-                defaultValue={paidBy ? paidBy._id : undefined}
+                defaultValue={currentExpense.paidBy ? currentExpense.paidBy._id : undefined}
               >
                 {billUsers.map((billUser) => (
                   <FormControlLabel
                     key={billUser._id}
                     value={billUser._id}
                     control={<Radio />}
-                    onChange={(e) => setPaidBy(billUsers.find(u => u._id === e.target.value))}
+                    onChange={(e) => currentExpense.setPaidBy(billUsers.find(u => u._id === e.target.value))}
                     label={billUser.name} />
                 ))}
               </RadioGroup>

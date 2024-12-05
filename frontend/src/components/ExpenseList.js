@@ -136,7 +136,7 @@ const ExpenseList = ({ bill_id }) => {
             </Toolbar>
           </AppBar>
           {/* Create New Expense Form */}
-          <ExpenseForm isOpen={isFormOpen} currentExpense={currentExpense} setExpenses={setExpenses} toggler={toggleForm} bill_id={bill_id} billUsers={users} isEditing={isEditingExpense} users={expenseSplitUsers} setUsers={setExpenseSplitUsers}/>
+          <ExpenseForm isOpen={isFormOpen} currentExpense={currentExpense} setCurrentExpense={setCurrentExpense} setExpenses={setExpenses} toggler={toggleForm} bill_id={bill_id} billUsers={users} isEditing={isEditingExpense} users={expenseSplitUsers} setUsers={setExpenseSplitUsers}/>
 
           {/*Expense List View */}
           <Main>
