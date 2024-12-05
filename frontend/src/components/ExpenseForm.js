@@ -17,6 +17,7 @@ import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { drawerWidth } from '../Theme';
+import { FormHelperText } from '@mui/material';
 
 const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentExpense, setCurrentExpense, users, setUsers, setExpenses }) => {
 
@@ -48,16 +49,32 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
   }
 
   const checkForm = () => {
+    let hasError = false;
     if (currentExpense.title.length < 1) {
       setTitleErr(true);
+      hasError = true;
     } else {
       setTitleErr(false);
     }
-    if (!users && users.length < 1) {
+    if (currentExpense.amount < 0) {
+      setAmountErr(true);
+      hasError = true;
+    } else {
+      setAmountErr(false);
+    }
+    if (currentExpense.paidBy === undefined) {
+      setPaidByErr(true);
+      hasError = true;
+    } else {
+      setPaidByErr(false);
+    }
+    if (users.filter(user => user.included === true).length < 1) {
       setUsersErr(true);
+      hasError = true;
     } else {
       setUsersErr(false);
     }
+    return hasError;
   }
 
   function filterObjectsById(list1, list2) {
@@ -67,25 +84,28 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    checkForm();
-    if (isEditing) {
-      const newExpense = {
-        _id: currentExpense._id,
-        title: currentExpense.title,
-        amount: currentExpense.amount,
-        paidBy: currentExpense.paidBy,
-        users: filterObjectsById(billUsers, users)
-      }
-      console.log(JSON.stringify(newExpense));
-      handleEdit(currentExpense._id, newExpense);
+    if (checkForm()) {
+      alert('Please fill out all fields.');
     } else {
-      const newExpense = {
-        title: currentExpense.title,
-        amount: currentExpense.amount,
-        paidBy: currentExpense.paidBy,
-        users: filterObjectsById(billUsers, users)
+      if (isEditing) {
+        const newExpense = {
+          _id: currentExpense._id,
+          title: currentExpense.title,
+          amount: currentExpense.amount,
+          paidBy: currentExpense.paidBy,
+          users: filterObjectsById(billUsers, users)
+        }
+        console.log(JSON.stringify(newExpense));
+        handleEdit(currentExpense._id, newExpense);
+      } else {
+        const newExpense = {
+          title: currentExpense.title,
+          amount: currentExpense.amount,
+          paidBy: currentExpense.paidBy,
+          users: filterObjectsById(billUsers, users)
+        }
+        handleAdd(newExpense);
       }
-      handleAdd(newExpense);
     }
   }
 
@@ -171,14 +191,14 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
               variant="outlined"
               placeholder="Title"
               value={currentExpense.title}
-              onChange={(e) => currentExpense.setTitle(e.target.value)}
+              onChange={(e) => setCurrentExpense({...currentExpense, title: (e.target.value)})}
             />
             :
             <TextField
               variant="outlined"
               placeholder="Title"
               value={currentExpense.title}
-              onChange={(e) => currentExpense.setTitle(e.target.value)}
+              onChange={(e) => setCurrentExpense({...currentExpense, title: (e.target.value)})}
             />}
           <FormLabel>Amount</FormLabel>
           {amountErr ?
@@ -188,18 +208,19 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
               variant="outlined"
               placeholder="Cost"
               value={currentExpense.amount}
-              onChange={(e) => currentExpense.setAmount(e.target.value)}
+              onChange={(e) => setCurrentExpense({...currentExpense, amount: (e.target.value)})}
             />
             :
             <TextField
               variant="outlined"
               placeholder="Cost"
               value={currentExpense.amount}
-              onChange={(e) => currentExpense.setAmount(e.target.value)}
+              onChange={(e) => setCurrentExpense({...currentExpense, amount: (e.target.value)})}
             />}
           {paidByErr ?
             <FormControl>
               <FormLabel id="select_paidby_label">Paid by:</FormLabel>
+              <FormHelperText error>Please select a user.</FormHelperText>
               <RadioGroup
                 aria-labelledby="select_paidby_label"
                 defaultValue={currentExpense.paidBy ? currentExpense.paidBy._id : undefined}
@@ -209,7 +230,7 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
                     key={billUser._id}
                     value={billUser._id}
                     control={<Radio color="error" />}
-                    onChange={(e) => currentExpense.setPaidBy(billUsers.find(u => u._id === e.target.value))}
+                    onChange={(e) => setCurrentExpense({...currentExpense, paidBy: (billUsers.find(u => u._id === e.target.value))})}
                     label={billUser.name} />
                 ))}
               </RadioGroup >
@@ -226,7 +247,7 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
                     key={billUser._id}
                     value={billUser._id}
                     control={<Radio />}
-                    onChange={(e) => currentExpense.setPaidBy(billUsers.find(u => u._id === e.target.value))}
+                    onChange={(e) => setCurrentExpense({...currentExpense, paidBy: (billUsers.find(u => u._id === e.target.value))})}
                     label={billUser.name} />
                 ))}
               </RadioGroup>
@@ -235,8 +256,10 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
           {usersErr ?
             <FormControl>
               <FormLabel id="select_user_label">Split to:</FormLabel>
+              <FormHelperText error>Please select a user.</FormHelperText>
               <FormGroup
-                aria-labelledby="select_user_label">
+                aria-labelledby="select_user_label"
+                >
                 {users.map((user) => (
                   <FormControlLabel
                     key={user.name}
