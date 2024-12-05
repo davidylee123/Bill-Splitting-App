@@ -22,6 +22,15 @@ The Bill Splitting Application allows users to:
 - Add users and expenses to bills.
 - Fetch, update, or delete bill details.
 
+On the login page, users can enter credentials to log into an account, or create one if they do not have one yet.
+On the main page, the users bills are listed. 
+- The user can add friends by pressing the ADD FRIENDS button, typing in another username, and clicking the add button.
+- The user can add bills by pressing the CREATE BILL button, filling out the form drawer, and clicking CREATE BILL.
+- The user can edit bills by pressing the edit button in the bill list, then filling out the form as they did to create the bill.
+- The user can delete bills by pressing the delete button in the bill list.
+- The user can see the details of a bill's expenses by clicking on the title of the bill.
+On the page listing expenses for a particular bill, the user can do the same actions on expenses as described above for bills, with the exception that the user cannot add friends or click on the title.
+
 ## Architecture
 
 The Bill Splitting Application allows users to:
