@@ -4,6 +4,8 @@ This project is a Bill Splitting application that allows users to manage shared 
 
 ## Table of Contents
 
+- [Overview](#overview)
+- [Architecture](#architecture)
 - [Technologies](#technologies)
 - [Features](#features)
 - [Getting Started](#getting-started)
@@ -12,6 +14,21 @@ This project is a Bill Splitting application that allows users to manage shared 
 - [Frontend Setup](#frontend-setup)
 - [Running the Application](#running-the-application)
 - [API Endpoints](#api-endpoints)
+
+## Overview
+
+The Bill Splitting Application allows users to:
+- Create and manage bills.
+- Add users and expenses to bills.
+- Fetch, update, or delete bill details.
+
+## Architecture
+
+The Bill Splitting Application allows users to:
+- **Controller Layer**: Handles HTTP requests (e.g., /api/bills).
+- **Service Layer**: Encapsulates business logic (e.g., validating expenses).
+- **Repository Layer**: Performs database operations (CRUD) using MongoDB.
+- **Data Models**: Defines objects like Bill, Expense, and User.
 
 ## Technologies
 
