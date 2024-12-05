@@ -18,11 +18,10 @@ import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { drawerWidth } from '../Theme';
 
-const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentExpense, expenseSplitUsers, setExpenses }) => {
+const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentExpense, users, setUsers, setExpenses }) => {
 
   const [title, setTitle] = useState(currentExpense.title);
   const [amount, setAmount] = useState(currentExpense.amount);
-  const [users, setUsers] = useState(expenseSplitUsers);
   const [paidBy, setPaidBy] = useState(currentExpense.paidBy);
   const [titleErr, setTitleErr] = useState(false);
   const [amountErr, setAmountErr] = useState(false);
@@ -30,6 +29,7 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
   const [paidByErr, setPaidByErr] = useState(false);
 
   const handleDrawerClose = () => {
+    console.log('users:', users);
     toggler();
     setTitleErr(false);
     setUsersErr(false);
@@ -209,6 +209,7 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
               >
                 {billUsers.map((billUser) => (
                   <FormControlLabel
+                    key={billUser._id}
                     value={billUser._id}
                     control={<Radio color="error" />}
                     onChange={(e) => setPaidBy(billUsers.find(u => u._id === e.target.value))}
@@ -225,6 +226,7 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
               >
                 {billUsers.map((billUser) => (
                   <FormControlLabel
+                    key={billUser._id}
                     value={billUser._id}
                     control={<Radio />}
                     onChange={(e) => setPaidBy(billUsers.find(u => u._id === e.target.value))}
@@ -240,6 +242,7 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
                 aria-labelledby="select_user_label">
                 {users.map((user) => (
                   <FormControlLabel
+                    key={user.name}
                     value={user.included}
                     control={<Checkbox icon={<PersonOutlineOutlinedIcon color="error" />}
                       checkedIcon={<PersonAddIcon />} />}
@@ -254,6 +257,7 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
               <FormGroup >
                 {users.map((user) => (
                   <FormControlLabel
+                    key={user.name}
                     value={user.included}
                     control={<Checkbox icon={<PersonOutlineOutlinedIcon />}
                       checkedIcon={<PersonAddIcon />} />}
