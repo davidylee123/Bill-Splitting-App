@@ -39,6 +39,7 @@ const ExpenseList = ({ bill_id }) => {
     try {
       const response = await api.get('/api/bills/' + bill_id);
       console.log('displaying expenses:', response.data.expenses);
+      console.log('users:', response.data.users);
       alert('Expenses fetched successfully!');
       setExpenses(response.data.expenses)
       setUsers(response.data.users)
@@ -60,6 +61,8 @@ const ExpenseList = ({ bill_id }) => {
     setCurrentExpense(expense);
     setExpenseSplitUsers(users.map(user => ({ id: user._id, name: user.name, included: currentExpense.users.some(expenseUser => expenseUser._id === user._id) })))
     toggleForm();
+    console.log('editing expense: ', expense)
+    console.log('currentExpense: ', currentExpense)
     console.log('ExpenseSplitUsers: ', expenseSplitUsers)
   }
 

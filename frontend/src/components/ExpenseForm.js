@@ -33,10 +33,10 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
     setUsersErr(false);
     setAmountErr(false);
     setPaidByErr(false);
+    console.log(currentExpense.paidBy ? currentExpense.paidBy.name : undefined)
   };
 
   const handleUserSelect = (userId) => {
-    console.log(JSON.stringify(users));
     if (!users || users.length === 0) {
       return; // Do nothing if users is empty
     }
@@ -46,6 +46,7 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
       included: user.included = (user.id === userId)? !user.included : user.included
     }))
     setUsers(newUsers);
+    console.log(JSON.stringify(users));
   }
 
   const checkForm = () => {
@@ -78,8 +79,9 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
   }
 
   function filterObjectsById(list1, list2) {
-    const idsInList2 = new Set(list2.map(item => item.id));
-    return list1.filter(item => idsInList2.has(item._id));
+    const idsInList2 = list2.filter(item => item.included);
+    console.log(idsInList2)
+    return list1.filter(item => idsInList2.some(ref => ref.id === item._id));
   }
 
   const handleSubmit = (e) => {
@@ -145,15 +147,15 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
         // update the state if success
         if (response.status === 200) {
           setExpenses(response.data.expenses);
-          console.log("Expense added successfully!");
+          console.log("Expense edited successfully!");
         } else {
-          console.error("Error adding expense!", response.error);
+          console.error("Error editing expense!", response.error);
         }
       } else {
         console.error('Expense not found!');
       }
     } catch (error) {
-      console.error('There was an error adding the expense!', error);
+      console.error('There was an error editing the expense!', error);
     }
   }
 
