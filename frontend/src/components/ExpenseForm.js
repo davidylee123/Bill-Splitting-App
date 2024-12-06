@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import api from '../services/api';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
@@ -295,7 +295,6 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
       </form>
     </Drawer>
   );
-
 };
 
 export default ExpenseForm;
