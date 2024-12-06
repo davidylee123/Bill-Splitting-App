@@ -133,7 +133,7 @@ const ExpenseList = ({ bill_id }) => {
     { id: 'amount', label: 'Cost', minWidth: 50, align: "left" },
     { id: 'paidBy', label: 'Paid by', minWidth: 50, align: "left" },
     { id: 'splitBetween', label: 'Split To', minWidth: 50, align: "left" },
-    { id: 'id', label: 'Edit', minWidth: 50, align: "right" },
+    { id: 'id', label: 'Edit/Delete', minWidth: 50, align: "right" },
   ];
 
   return (
