@@ -44,7 +44,7 @@ const BillForm = ({isOpen, friends, toggler, bills, setBills, currentBill, setCu
     }else{
       setTitleErr(false);
     }
-    if(friends.filter(user => user.included === true).length < 1){
+    if(billFriends.filter(user => user.included === true).length < 1){
       hasError = true;
       setFriendsErr(true);
     }else{
@@ -62,7 +62,7 @@ const BillForm = ({isOpen, friends, toggler, bills, setBills, currentBill, setCu
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    //if(!checkForm()){
+    if(!checkForm()){
       let bFriends = [];
       friends.map((f) => {
         if(f.included){
@@ -77,9 +77,9 @@ const BillForm = ({isOpen, friends, toggler, bills, setBills, currentBill, setCu
         const newBill = {title: currentBill.title, expenses: [], users: filterObjectsById(friends, billFriends)};
         handleAdd(newBill);
       }
-    //}else{
-      //alert("Please fill out all fields.")
-    //}
+    }else{
+      alert("Please fill out all fields.")
+    }
   }
 
   const handleAdd = async (newBill) => {
