@@ -15,6 +15,7 @@ import Toolbar from '@mui/material/Toolbar';
 import Fab from '@mui/material/Fab';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import PrintIcon from '@mui/icons-material/Print';
 import EditIcon from '@mui/icons-material/Edit';
 import IconButton from '@mui/material/IconButton';
 import { Main, AppBar, drawerWidth } from '../Theme';
@@ -149,7 +150,7 @@ const ExpenseList = ({ bill_id }) => {
         {/*Expense List View */}
         <Main>
           <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-            <TableContainer sx={{ maxHeight: 440 }}>
+            <TableContainer>
               <Table stickyHeader aria-label="sticky table">
                 <TableHead>
                   <TableRow>
@@ -206,6 +207,27 @@ const ExpenseList = ({ bill_id }) => {
       <Fab
         variant="extended"
         color="primary"
+        aria-label="print-statement"
+        onClick={() => window.print()}
+        sx={[
+          {
+            mr: 2,
+            margin: 0,
+            top: 'auto',
+            right: 210,
+            bottom: 20,
+            left: 'auto',
+            position: 'fixed',
+          },
+        ]}
+      >
+        Print Statement <PrintIcon/>
+      </Fab>
+
+      {/* Floating Action Button */}
+      <Fab
+        variant="extended"
+        color="primary"
         aria-label="open drawer"
         onClick={() => activateAddForm()}
         sx={[
@@ -221,7 +243,7 @@ const ExpenseList = ({ bill_id }) => {
           isFormOpen && { display: 'none' },
         ]}
       >
-        Create Expense<AddIcon />
+        Create Expense <AddIcon />
       </Fab>
 
     </div >
