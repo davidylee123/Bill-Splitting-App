@@ -1,5 +1,4 @@
 import React from 'react';
-import BillForm from '../components/BillForm';
 import BillList from '../components/BillList';
 
 const HomePage = () => {
