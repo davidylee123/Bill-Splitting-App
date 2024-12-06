@@ -48,7 +48,7 @@ const BillList = () => {
   //for form drawer
   const [isOpen, setIsOpen] = React.useState(false);
   const [bills, setBills] = useState([]);
-  const [friends, setFriends] = useState([{ name: 'Andrew', included: false }, { name: 'Adriana', included: false }]);
+  const [friends, setFriends] = useState([]);
   const [addingFriend, setAddingFriend] = useState(false);
   const [newFriend, setNewFriend] = useState('');
   const [friendAddSuccess, setFriendAddSuccess] = useState(false);
@@ -56,6 +56,13 @@ const BillList = () => {
   //for table
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
+
+  const [currentBill, setCurrentBill] = useState({
+    title: '',
+    users: [], 
+  });
+  const[billUsers, setBillUsers] = useState([]);
+  const [isEditingBill, setIsEditingBill] = useState(false);
 
   const getBills = async () => {
     try {
@@ -68,9 +75,39 @@ const BillList = () => {
     }
   }
 
+  const getFriends = async () => {
+    let userid = '64c87da267e2a12b3c5d6701';
+    //get friends, which is a list of object ids
+    //get all users
+    // if friend id == user id
+    //      setFriends([...friends, { name: friend.name, included: false }]);
+    try {
+      const thisUser = await api.get('/api/users/' + userid);
+      const users = await api.get('/api/users');
+      let friendsArray = [];
+      users.data.map((u) => {
+        thisUser.data.friends.map((f) => {
+          if(u._id == f){
+            friendsArray.push({ name: u.name, _id: u._id });
+          }
+        })
+      });
+
+      setFriends(friendsArray);
+      
+    } catch (error) {
+      console.error('There was an error fetching the friends!', error);
+    }
+  }
+
   useEffect(() => {
     getBills();
+    getFriends();
   }, [])
+
+  useEffect(() => {
+    setBillUsers(friends.map(user => ({ id: user._id, name: user.name, included: currentBill.users.some(billUser => billUser._id === user._id) })))
+  }, [currentBill])
 
   const toggleBillForm = () => {
     setIsOpen(!isOpen);
@@ -87,26 +124,63 @@ const BillList = () => {
   };
 
 
-  const handleFriendAdd = () => {
-    if (newFriend.length >= 2) {
-      setFriends([...friends, { name: newFriend, included: false }]);
-      setNewFriend('');
-      setFriendAddSuccess(true);
-    } else {
+  const handleFriendAdd = async () => {
+    //alter this to:
+    //  try to fetch user with username newFriend
+    //  if user exists, add friend.ObjectId to user.friends list
+    //  otherwise, throw error
+    try {
+      const response = await api.get('/api/users');
+      let friend = null;
+      response.data.map((f) => {if(f.name == newFriend){
+          friend = f;
+        }}
+        );
+      if(friend != null){
+        alert('Friend found successfully!');
+        
+        //assume we know our current user id?
+        let userid = '64c87da267e2a12b3c5d6701';
+        const result = await api.post('/api/users/' + userid + '/friends/' + friend._id);
+
+        setFriends([...friends, { name: newFriend, included: false, _id: friend._id }]);
+        setNewFriend('');
+        setFriendAddSuccess(true);
+      }else{
+        alert('Friend could not be found');
+        setFriendAddErr(true);
+      }
+    } catch (error) {
+      console.error('There was an error in finding this user!', error);
       setFriendAddErr(true);
     }
 
   }
 
-  const handleDelete = (n) => {
-    setBills(bills.filter((f) => f.id !== n));
+  const handleDelete = async (n) => {
+    try {
+      const response = await api.delete('/api/bills/' + n);
+      setBills(bills.filter((f) => f._id !== n));
+    } catch (error) {
+      console.error('There was an error deleting the bill!', error);
+    }
+
+    
   }
 
-  const handleEdit = (n) => {
-    //setTitle(col.title);
-    //setAmount(col.amount);
+  const handleEdit = (bill) => {
+    setIsEditingBill(true);
+    setCurrentBill(bill);
+    toggleBillForm();
+  }
 
-    setBills(bills.filter((f) => f.id !== n));
+  const handleAdd = () => {
+    setIsEditingBill(false);
+    setCurrentBill({
+      title: '',
+      users: [], 
+    });
+    toggleBillForm();
   }
 
   const usersToString = (users) => {
@@ -175,7 +249,7 @@ const BillList = () => {
           {/* Add friend success notif */}
           <Drawer
             anchor='top'
-            isOpen={friendAddSuccess}
+            open={friendAddSuccess}
             onClose={() => { setFriendAddSuccess(false) }}
           >
             <Stack spacing={1} direction="row" sx={{ justifyContent: "center", alignItems: "center", }}>
@@ -187,7 +261,7 @@ const BillList = () => {
           {/* Add friend err notif */}
           <Drawer
             anchor='top'
-            isOpen={friendAddErr}
+            open={friendAddErr}
             onClose={() => { setFriendAddErr(false) }}
           >
             <Stack spacing={1} direction="row" sx={{ justifyContent: "center", alignItems: "center", }}>
@@ -199,7 +273,7 @@ const BillList = () => {
         </Drawer>
 
         {/* Create New Bill Form */}
-        <BillForm isOpen={isOpen} friends={friends} bills={bills} setBills={setBills} toggler={toggleBillForm} />
+        <BillForm isOpen={isOpen} friends={friends} bills={bills} setBills={setBills} toggler={toggleBillForm} currentBill={currentBill} setCurrentBill={setCurrentBill} isEditing={isEditingBill} billFriends={billUsers} setBillFriends={setBillUsers} />
 
         {/* Bill List View */}
         <Main open={isOpen}>
@@ -238,7 +312,7 @@ const BillList = () => {
                         <TableCell
                           align="right"
                         >
-                          <IconButton onClick={() => handleEdit(bill._id)} color="warning"><EditIcon /></IconButton>
+                          <IconButton onClick={() => handleEdit(bill)} color="warning"><EditIcon /></IconButton>
                           <IconButton onClick={() => handleDelete(bill._id)} color="error"><DeleteIcon /></IconButton>
                         </TableCell>
                       </TableRow>
@@ -265,7 +339,7 @@ const BillList = () => {
         variant="extended"
         color="primary"
         aria-label="open drawer"
-        onClick={toggleBillForm}
+        onClick={handleAdd}
         sx={[
           {
             mr: 2,

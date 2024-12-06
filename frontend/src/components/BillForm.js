@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Drawer from '@mui/material/Drawer';
@@ -14,54 +14,101 @@ import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { drawerWidth } from '../Theme';
 
-const BillForm = ({isOpen, friends, toggler, bills, setBills}) => {
-  const [title, setTitle] = useState('');
-  const [billFriends, setBillFriends] = useState([]);
+const BillForm = ({isOpen, friends, toggler, bills, setBills, currentBill, setCurrentBill, billFriends, setBillFriends, isEditing}) => {
   const [titleErr, setTitleErr] = useState(false);
   const [friendsErr, setFriendsErr] = useState(false);
 
   const handleDrawerClose = () => {
     toggler();
-    setTitle('');
     setTitleErr(false);
     setFriendsErr(false);
   };
 
-  const handleFriendSelect = (name) => {
-    setBillFriends(friends.map(f => {
-      if(f.name === name){
-        f.included = !f.included
-      }   
-  }))};
+  const handleFriendSelect = (userId) => {
+    if (!billFriends || billFriends.length === 0) {
+      return; // Do nothing if friends is empty
+    }
+    const newUsers = billFriends.map(user => ({
+      id: user.id,
+      name: user.name,
+      included: (user.id == userId)? !user.included : user.included
+    }))
+    setBillFriends(newUsers);
+  };
 
   const checkForm = () => {
-    if(title.length < 1){
+    let hasError = false;
+    if(currentBill.title.length < 1){
+      hasError = true;
       setTitleErr(true);
     }else{
       setTitleErr(false);
     }
-    if(!billFriends && billFriends.length < 1){
+    if(billFriends.filter(user => user.included === true).length < 1){
+      hasError = true;
       setFriendsErr(true);
     }else{
       setFriendsErr(false);
     }
+
+    return hasError;
   }
 
-  const addBill = async (e) => {
+  function filterObjectsById(list1, list2) {
+    const idsInList2 = list2.filter(item => item.included);
+    return list1.filter(item => idsInList2.some(ref => ref.id === item._id));
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    checkForm();
-    if(!titleErr && !friendsErr){
-      const newBill = {title: title, expenses: [], users: billFriends};
-      try {
-        const response = await axios.post('http://localhost:8080/api/bills', newBill);
-        alert('Bill created successfully!');
-        console.log(response.data);
-      } catch (error) {
-        console.error('There was an error creating the bill!', error);
+    
+    if(!checkForm()){
+      let bFriends = [];
+      friends.map((f) => {
+        if(f.included){
+          bFriends.push(f);
+        }
+      });
+      
+      if(isEditing){
+        const newBill = {_id: currentBill._id, title: currentBill.title, expenses: [], users: filterObjectsById(friends, billFriends)};
+        handleEdit(currentBill._id, newBill);
+      }else{
+        const newBill = {title: currentBill.title, expenses: [], users: filterObjectsById(friends, billFriends)};
+        handleAdd(newBill);
       }
-      setBills([...bills, newBill]);
-      setTitle('');
-      setBillFriends([]);
+    }else{
+      alert("Please fill out all fields.")
+    }
+  }
+
+  const handleAdd = async (newBill) => {
+    try {
+      // create the bill
+      const billResponse = await api.post('/api/bills', newBill);
+      if (billResponse.status === 200) {
+        setBills([...bills, billResponse.data]);
+        console.log("Bill added successfully!");
+      } else {
+        console.error("Error adding bill!", billResponse.error);
+      }
+    } catch (error) {
+      console.error('There was an error adding the bill!', error);
+    }
+  }
+
+  const handleEdit = async (billId, newBill) => {
+    try {
+      const response = await api.put('/api/bills/' + billId, newBill);
+      // update the state if success
+      if (response.status === 200) {
+        setBills(bills.map(b => b._id === billId ? response.data : b));
+        console.log("Bill edited successfully!");
+      } else {
+        console.error("Error editing bill!", response.error);
+      }
+    } catch (error) {
+      console.error('There was an error editing the bill!', error);
     }
   }
 
@@ -80,10 +127,12 @@ const BillForm = ({isOpen, friends, toggler, bills, setBills}) => {
       open={isOpen}
     >
       <Divider />
-      <form onSubmit={addBill}>
+      <form onSubmit={handleSubmit}>
         <Stack spacing={1} direction="column">
           <Stack spacing={1} direction="row">
-            <h2 align="center">Create New Bill</h2>
+          <h2 align="center">
+              {isEditing ? "Edit Bill" : "Create Bill"}
+            </h2>
             <IconButton size="small" color="error" onClick={handleDrawerClose}>
               <CloseIcon />
             </IconButton>
@@ -95,22 +144,24 @@ const BillForm = ({isOpen, friends, toggler, bills, setBills}) => {
               helperText="Please enter a title for the bill."
               variant="outlined"
               placeholder="Bill Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              value={currentBill.title}
+              onChange={(e) => setCurrentBill({...currentBill, title: (e.target.value)})}
             />
             :
             <TextField
               variant="outlined"
               placeholder="Bill Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              value={currentBill.title}
+              onChange={(e) => setCurrentBill({...currentBill, title: (e.target.value)})}
             />}
           {friendsErr ?
             <FormGroup >
-              {friends.map((friend) => (
+              {billFriends.map((friend) => (
                 <FormControlLabel
-                  value={friend.included}
-                  onChange={(e) => handleFriendSelect(e.target, friend.name)}
+                  key={friend.name}
+                  value={friend.id}
+                  checked={friend.included}
+                  onChange={(e) => handleFriendSelect(friend.id)}
                   control={<Checkbox icon={<PersonOutlineOutlinedIcon color="error" />}
                     checkedIcon={<PersonAddIcon />} />}
                   label={friend.name} />
@@ -118,10 +169,12 @@ const BillForm = ({isOpen, friends, toggler, bills, setBills}) => {
             </FormGroup>
             :
             <FormGroup >
-              {friends.map((friend) => (
+              {billFriends.map((friend) => (
                 <FormControlLabel
-                  value={friend.included}
-                  onChange={(e) => handleFriendSelect(e.target, friend.name)}
+                  key={friend.name}
+                  value={friend.id}
+                  checked={friend.included}
+                  onChange={(e) => handleFriendSelect(friend.id)}
                   control={<Checkbox icon={<PersonOutlineOutlinedIcon />}
                     checkedIcon={<PersonAddIcon />} />}
                   label={friend.name} />
@@ -130,7 +183,7 @@ const BillForm = ({isOpen, friends, toggler, bills, setBills}) => {
           }
         </Stack>
         <Stack spacing={1} direction="column">
-          <Button align="right" variant="contained" type="submit">Create Bill</Button>
+          <Button align="right" variant="contained" type="submit">Save</Button>
         </Stack>
       </form>
     </Drawer>

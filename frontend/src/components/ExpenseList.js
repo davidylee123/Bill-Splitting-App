@@ -15,6 +15,7 @@ import Toolbar from '@mui/material/Toolbar';
 import Fab from '@mui/material/Fab';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import PrintIcon from '@mui/icons-material/Print';
 import EditIcon from '@mui/icons-material/Edit';
 import IconButton from '@mui/material/IconButton';
 import { Main, AppBar, drawerWidth } from '../Theme';
@@ -27,18 +28,17 @@ const ExpenseList = ({ bill_id }) => {
   const [expenses, setExpenses] = useState([]);
   const [users, setUsers] = useState([]);
   const [currentExpense, setCurrentExpense] = useState({
-      title: '',
-      paidBy: undefined,
-      amount: 0,
-      users: [], 
-    });
+    title: '',
+    paidBy: undefined,
+    amount: 0,
+    users: [],
+  });
   const [expenseSplitUsers, setExpenseSplitUsers] = useState([]);
   const [isEditingExpense, setIsEditingExpense] = useState(false);
 
   const getBillData = async () => {
     try {
       const response = await api.get('/api/bills/' + bill_id);
-      console.log('displaying expenses:', response.data.expenses);
       alert('Expenses fetched successfully!');
       setExpenses(response.data.expenses)
       setUsers(response.data.users)
@@ -55,12 +55,14 @@ const ExpenseList = ({ bill_id }) => {
     setIsFormOpen(!isFormOpen);
   };
 
-  const activateEditForm = (expense) => {
-    setIsEditingExpense(true);
-    setCurrentExpense(expense);
+  useEffect(() => {
     setExpenseSplitUsers(users.map(user => ({ id: user._id, name: user.name, included: currentExpense.users.some(expenseUser => expenseUser._id === user._id) })))
+  }, [currentExpense])
+
+  const activateEditForm = (expense) => {
+    setIsEditingExpense(true)
+    setCurrentExpense(expense)
     toggleForm();
-    console.log('ExpenseSplitUsers: ', expenseSplitUsers)
   }
 
   const activateAddForm = () => {
@@ -69,144 +71,183 @@ const ExpenseList = ({ bill_id }) => {
       title: '',
       paidBy: undefined,
       amount: 0,
-      users: [], 
+      users: [],
     });
     setExpenseSplitUsers(users.map(user => ({ id: user._id, name: user.name, included: false })))
     toggleForm();
   }
 
   const handleDelete = async (expenseId) => {
-      try {
-        // get the current bill
-        const currentBill = await api.get('api/bills/' + bill_id);
-        const newBill = currentBill.data;
-        // remove the expense from the bill
-        newBill.expenses = newBill.expenses.filter((expense) => expense._id !== expenseId);
-        const response = await api.put(`/api/bills/${bill_id}`, newBill);
-        // update the state
-        if (response.status === 200) {
-          setExpenses(response.data.expenses);
-          console.log("Expense deleted successfully!");
+    try {
+      // get the current bill
+      const currentBill = await api.get('api/bills/' + bill_id);
+      const newBill = currentBill.data;
+      // remove the expense from the bill
+      newBill.expenses = newBill.expenses.filter((expense) => expense._id !== expenseId);
+      const response = await api.put(`/api/bills/${bill_id}`, newBill);
+      // update the state
+      if (response.status === 200) {
+        setExpenses(response.data.expenses);
+        console.log("Expense deleted successfully!");
+      } else {
+        console.error("Error deleting expense!", response.error);
+      }
+    } catch (error) {
+      console.error('There was an error deleting the expense!', error);
+    }
+  }
+
+  const usersToString = (users) => {
+    if (users) {
+      let userNames = [];
+      userNames = users.map((user) => {
+        if (user) {
+          return user.name;
         } else {
-          console.error("Error deleting expense!", response.error);
+          return 'null';
         }
-      } catch (error) {
-        console.error('There was an error deleting the expense!', error);
-      }
+      })
+      return userNames.join(', ');
     }
+    return '';
+  }
 
-    const usersToString = (users) => {
-      if (users) {
-        let userNames = [];
-        userNames = users.map((user) => {
-          if (user) {
-            return user.name;
-          } else {
-            return 'null';
-          }
-        })
-        return userNames.join(', ');
-      }
-      return '';
-    }
+  const calculateTotal = () => {
+    let total = 0;
+    expenses.forEach((expense) => {
+      total += expense.amount;
+    });
+    return total;
+  }
 
-    const columns = [
-      { id: 'title', label: 'Title', minWidth: 50, align: "left" },
-      { id: 'amount', label: 'Cost', minWidth: 50, align: "left" },
-      { id: 'paidBy', label: 'Paid by', minWidth: 50, align: "left" },
-      { id: 'splitBetween', label: 'Split To', minWidth: 50, align: "left" },
-      { id: 'id', label: 'Edit', minWidth: 50, align: "right" },
-    ];
+  const calculateShare = () => {
+    let total = 0;
+    expenses.forEach((expense) => {
+      total += expense.amount / (expense.users.length + 1);
+    })
+    return Math.round(total * 100) / 100;
+  }
 
-    return (
-      <div>
-        <Box sx={{ display: 'flex' }}>
-          <AppBar position="fixed">
-            <Toolbar >
-              <h2>Bill Splitting App</h2>
-            </Toolbar>
-          </AppBar>
-          {/* Create New Expense Form */}
-          <ExpenseForm isOpen={isFormOpen} currentExpense={currentExpense} setExpenses={setExpenses} toggler={toggleForm} bill_id={bill_id} billUsers={users} isEditing={isEditingExpense} expenseSplitUsers={expenseSplitUsers}/>
+  const columns = [
+    { id: 'title', label: 'Title', minWidth: 50, align: "left" },
+    { id: 'amount', label: 'Cost', minWidth: 50, align: "left" },
+    { id: 'paidBy', label: 'Paid by', minWidth: 50, align: "left" },
+    { id: 'splitBetween', label: 'Split To', minWidth: 50, align: "left" },
+    { id: 'id', label: 'Edit/Delete', minWidth: 50, align: "right" },
+  ];
 
-          {/*Expense List View */}
-          <Main>
-            <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-              <TableContainer sx={{ maxHeight: 440 }}>
-                <Table stickyHeader aria-label="sticky table">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell colSpan={3} align="center"><h2>Expenses</h2></TableCell>
-                    </TableRow>
-                    <TableRow>
-                      {columns.map((column) => (
-                        <TableCell
-                          key={column.id}
-                          align={column.align}
-                          style={{ minWidth: column.minWidth }}
-                        >
-                          {column.label}
+  return (
+    <div>
+      <Box sx={{ display: 'flex' }}>
+        <AppBar position="fixed">
+          <Toolbar >
+            <h2>Bill Splitting App</h2>
+          </Toolbar>
+        </AppBar>
+        {/* Create New Expense Form */}
+        <ExpenseForm isOpen={isFormOpen} currentExpense={currentExpense} setCurrentExpense={setCurrentExpense} setExpenses={setExpenses} toggler={toggleForm} bill_id={bill_id} billUsers={users} isEditing={isEditingExpense} users={expenseSplitUsers} setUsers={setExpenseSplitUsers} />
+
+        {/*Expense List View */}
+        <Main>
+          <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+            <TableContainer>
+              <Table stickyHeader aria-label="sticky table">
+                <TableHead>
+                  <TableRow>
+                    <TableCell colSpan={3} align="left"><h2>Expenses</h2></TableCell>
+                    <TableCell align="center"><h2>Total: $ {calculateTotal()}</h2></TableCell>
+                    <TableCell align="right"><h2>Your Share: $ {calculateShare()}</h2></TableCell>
+                  </TableRow>
+                  <TableRow>
+                    {columns.map((column) => (
+                      <TableCell
+                        key={column.id}
+                        align={column.align}
+                        style={{ minWidth: column.minWidth }}
+                      >
+                        {column.label}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {expenses.map((expense) => {
+                    return (
+                      <TableRow
+                        hover role="checkbox"
+                        key={expense._id}
+                      >
+                        <TableCell>
+                          <Button> {expense.title}</Button>
                         </TableCell>
-                      ))}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {expenses.map((expense) => {
-                      return (
-                        <TableRow
-                          hover role="checkbox"
-                          key={expense._id}
+                        <TableCell>
+                          $ {expense.amount}
+                        </TableCell>
+                        <TableCell>
+                          {expense.paidBy.name}
+                        </TableCell>
+                        <TableCell>{usersToString(expense.users)}</TableCell>
+                        <TableCell
+                          align="right"
                         >
-                          <TableCell>
-                            <Button> {expense.title}</Button>
-                          </TableCell>
-                          <TableCell>
-                            $ {expense.amount}
-                          </TableCell>
-                          <TableCell>
-                            {expense.paidBy.name}
-                          </TableCell>
-                          <TableCell>{usersToString(expense.users)}</TableCell>
-                          <TableCell
-                            align="right"
-                          >
-                            <IconButton onClick={() => activateEditForm(expense)} color="warning"><EditIcon /></IconButton>
-                            <IconButton onClick={() => handleDelete(expense._id)} color="error"><DeleteIcon /></IconButton>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Paper>
-          </Main>
-        </Box>
+                          <IconButton onClick={() => activateEditForm(expense)} color="warning"><EditIcon /></IconButton>
+                          <IconButton onClick={() => handleDelete(expense._id)} color="error"><DeleteIcon /></IconButton>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        </Main>
+      </Box>
 
-        {/* Floating Action Button */}
-        <Fab
-          variant="extended"
-          color="primary"
-          aria-label="open drawer"
-          onClick={() => activateAddForm()}
-          sx={[
-            {
-              mr: 2,
-              margin: 0,
-              top: 'auto',
-              right: 20,
-              bottom: 20,
-              left: 'auto',
-              position: 'fixed',
-            },
-            isFormOpen && { display: 'none' },
-          ]}
-        >
-          Create Expense<AddIcon />
-        </Fab>
+      {/* Floating Action Button */}
+      <Fab
+        variant="extended"
+        color="primary"
+        aria-label="print-statement"
+        onClick={() => window.print()}
+        sx={[
+          {
+            mr: 2,
+            margin: 0,
+            top: 'auto',
+            right: 210,
+            bottom: 20,
+            left: 'auto',
+            position: 'fixed',
+          },
+        ]}
+      >
+        Print Statement <PrintIcon/>
+      </Fab>
 
-      </div >
-    );
-  };
+      {/* Floating Action Button */}
+      <Fab
+        variant="extended"
+        color="primary"
+        aria-label="open drawer"
+        onClick={() => activateAddForm()}
+        sx={[
+          {
+            mr: 2,
+            margin: 0,
+            top: 'auto',
+            right: 20,
+            bottom: 20,
+            left: 'auto',
+            position: 'fixed',
+          },
+          isFormOpen && { display: 'none' },
+        ]}
+      >
+        Create Expense <AddIcon />
+      </Fab>
 
-  export default ExpenseList;
+    </div >
+  );
+};
+
+export default ExpenseList;
