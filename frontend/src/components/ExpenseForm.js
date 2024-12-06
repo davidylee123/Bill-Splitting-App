@@ -27,13 +27,11 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
   const [paidByErr, setPaidByErr] = useState(false);
 
   const handleDrawerClose = () => {
-    console.log('users:', users);
     toggler();
     setTitleErr(false);
     setUsersErr(false);
     setAmountErr(false);
     setPaidByErr(false);
-    console.log(currentExpense.paidBy ? currentExpense.paidBy.name : undefined)
   };
 
   const handleUserSelect = (userId) => {
@@ -46,7 +44,6 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
       included: user.included = (user.id === userId)? !user.included : user.included
     }))
     setUsers(newUsers);
-    console.log(JSON.stringify(users));
   }
 
   const checkForm = () => {
@@ -80,7 +77,6 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
 
   function filterObjectsById(list1, list2) {
     const idsInList2 = list2.filter(item => item.included);
-    console.log(idsInList2)
     return list1.filter(item => idsInList2.some(ref => ref.id === item._id));
   }
 
@@ -97,7 +93,6 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
           paidBy: currentExpense.paidBy,
           users: filterObjectsById(billUsers, users)
         }
-        console.log(JSON.stringify(newExpense));
         handleEdit(currentExpense._id, newExpense);
       } else {
         const newExpense = {
@@ -225,13 +220,14 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
               <FormHelperText error>Please select a user.</FormHelperText>
               <RadioGroup
                 aria-labelledby="select_paidby_label"
-                defaultValue={currentExpense.paidBy ? currentExpense.paidBy._id : undefined}
+                defaultValue={currentExpense.paidBy?._id}
               >
                 {billUsers.map((billUser) => (
                   <FormControlLabel
                     key={billUser._id}
                     value={billUser._id}
                     control={<Radio color="error" />}
+                    checked={billUser._id === currentExpense.paidBy?._id}
                     onChange={(e) => setCurrentExpense({...currentExpense, paidBy: (billUsers.find(u => u._id === e.target.value))})}
                     label={billUser.name} />
                 ))}
@@ -242,13 +238,14 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
               <FormLabel id="select_paidby_label">Paid by:</FormLabel>
               <RadioGroup
                 aria-labelledby="select_paidby_label"
-                defaultValue={currentExpense.paidBy ? currentExpense.paidBy._id : undefined}
+                defaultValue={currentExpense.paidBy?._id}
               >
                 {billUsers.map((billUser) => (
                   <FormControlLabel
                     key={billUser._id}
                     value={billUser._id}
                     control={<Radio />}
+                    checked={billUser._id === currentExpense.paidBy?._id}
                     onChange={(e) => setCurrentExpense({...currentExpense, paidBy: (billUsers.find(u => u._id === e.target.value))})}
                     label={billUser.name} />
                 ))}
@@ -265,7 +262,8 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
                 {users.map((user) => (
                   <FormControlLabel
                     key={user.name}
-                    value={user.included}
+                    value={user.id}
+                    checked={user.included}
                     control={<Checkbox icon={<PersonOutlineOutlinedIcon color="error" />}
                       checkedIcon={<PersonAddIcon />} />}
                     label={user.name}
@@ -280,7 +278,8 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
                 {users.map((user) => (
                   <FormControlLabel
                     key={user.name}
-                    value={user.included}
+                    value={user.id}
+                    checked={user.included}
                     control={<Checkbox icon={<PersonOutlineOutlinedIcon />}
                       checkedIcon={<PersonAddIcon />} />}
                     label={user.name}
