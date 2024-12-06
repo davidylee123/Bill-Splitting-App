@@ -19,12 +19,7 @@ import Divider from '@mui/material/Divider';
 
 import Fab from '@mui/material/Fab';
 import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
-import FormGroup from '@mui/material/FormGroup';
 import AddIcon from '@mui/icons-material/Add';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import IconButton from '@mui/material/IconButton';
@@ -34,7 +29,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import DoneIcon from '@mui/icons-material/Done';
 import ErrorIcon from '@mui/icons-material/Error';
 import {Link} from 'react-router-dom';
-import { Main, AppBar, drawerWidth } from '../Theme';
+import { Main, AppBar } from '../Theme';
 import BillForm from './BillForm';
 import api from '../services/api';
 
@@ -53,9 +48,6 @@ const BillList = () => {
   const [newFriend, setNewFriend] = useState('');
   const [friendAddSuccess, setFriendAddSuccess] = useState(false);
   const [friendAddErr, setFriendAddErr] = useState(false);
-  //for table
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
   const [currentBill, setCurrentBill] = useState({
     title: '',
@@ -112,17 +104,6 @@ const BillList = () => {
   const toggleBillForm = () => {
     setIsOpen(!isOpen);
   };
-
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
-  };
-
 
   const handleFriendAdd = async () => {
     //alter this to:
@@ -278,7 +259,7 @@ const BillList = () => {
         {/* Bill List View */}
         <Main open={isOpen}>
           <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-            <TableContainer sx={{ maxHeight: 440 }}>
+            <TableContainer >
               <Table stickyHeader aria-label="sticky table">
                 <TableHead>
                   <TableRow>
@@ -321,15 +302,6 @@ const BillList = () => {
                 </TableBody>
               </Table>
             </TableContainer>
-            <TablePagination
-              rowsPerPageOptions={[10, 25, 100]}
-              component="div"
-              count={bills.length}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-            />
           </Paper>
         </Main>
       </Box>
