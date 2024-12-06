@@ -18,7 +18,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import PrintIcon from '@mui/icons-material/Print';
 import EditIcon from '@mui/icons-material/Edit';
 import IconButton from '@mui/material/IconButton';
-import { Main, AppBar, drawerWidth } from '../Theme';
+import { Main, AppBar } from '../Theme';
 import ExpenseForm from './ExpenseForm';
 import api from '../services/api';
 
@@ -57,7 +57,7 @@ const ExpenseList = ({ bill_id }) => {
 
   useEffect(() => {
     setExpenseSplitUsers(users.map(user => ({ id: user._id, name: user.name, included: currentExpense.users.some(expenseUser => expenseUser._id === user._id) })))
-  }, [currentExpense])
+  }, [currentExpense, users])
 
   const activateEditForm = (expense) => {
     setIsEditingExpense(true)
@@ -155,7 +155,7 @@ const ExpenseList = ({ bill_id }) => {
                 <TableHead>
                   <TableRow>
                     <TableCell colSpan={3} align="left"><h2>Expenses</h2></TableCell>
-                    <TableCell align="center"><h2>Total: $ {calculateTotal()}</h2></TableCell>
+                    <TableCell align="left"><h2>Total: $ {calculateTotal()}</h2></TableCell>
                     <TableCell align="right"><h2>Your Share: $ {calculateShare()}</h2></TableCell>
                   </TableRow>
                   <TableRow>
