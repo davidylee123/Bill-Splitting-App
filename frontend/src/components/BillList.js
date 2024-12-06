@@ -299,10 +299,7 @@ const BillList = () => {
                 <TableBody>
                   {bills.map((bill) => {
                     return (
-                      <TableRow
-                        hover role="checkbox"
-                        key={bill._id}
-                      >
+                      <TableRow hover role="checkbox">
                         <TableCell>
                           <Link to={`/bill/${bill._id}`}>
                             <Button>{bill.title}</Button>

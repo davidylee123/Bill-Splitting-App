@@ -6,6 +6,7 @@ import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
+import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Button from '@mui/material/Button';
 
@@ -19,12 +20,19 @@ import PrintIcon from '@mui/icons-material/Print';
 import EditIcon from '@mui/icons-material/Edit';
 import IconButton from '@mui/material/IconButton';
 import { Main, AppBar, drawerWidth } from '../Theme';
-import ExpenseForm from './ExpenseForm';
+import BillForm from './BillForm';
 import api from '../services/api';
 
-const ExpenseList = ({ bill_id }) => {
+const columns = [
+  { id: 'title', label: 'Title', minWidth: 50, align: "left" },
+  { id: 'friends', label: 'Friends', minWidth: 50, align: "left" },
+  { id: 'id', label: 'Edit', minWidth: 50, align: "right" },
+];
 
-  const [isFormOpen, setIsFormOpen] = React.useState(false);
+const ExpenseList = ({bill_id}) => {
+
+  //for form drawer
+  const [isOpen, setIsOpen] = React.useState(false);
   const [expenses, setExpenses] = useState([]);
   const [users, setUsers] = useState([]);
   const [currentExpense, setCurrentExpense] = useState({
@@ -41,18 +49,27 @@ const ExpenseList = ({ bill_id }) => {
       const response = await api.get('/api/bills/' + bill_id);
       alert('Expenses fetched successfully!');
       setExpenses(response.data.expenses)
-      setUsers(response.data.users)
     } catch (error) {
       console.error('There was an error fetching the expenses!', error);
     }
   }
 
   useEffect(() => {
-    getBillData();
+    getExpenses();
   }, [])
 
-  const toggleForm = () => {
-    setIsFormOpen(!isFormOpen);
+  const toggleBillForm = () => {
+    setIsOpen(!isOpen);
+  };
+
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(+event.target.value);
+    setPage(0);
   };
 
   useEffect(() => {
