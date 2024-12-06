@@ -14,7 +14,7 @@ import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { drawerWidth } from '../Theme';
 
-const BillForm = ({isOpen, friends, toggler, bills, setBills, currentBill, isEditing}) => {
+const BillForm = ({isOpen, friends, setFriends, toggler, bills, setBills, currentBill, isEditing}) => {
   const [title, setTitle] = useState(currentBill.title);
   const [billFriends, setBillFriends] = useState([]);
   const [titleErr, setTitleErr] = useState(false);
@@ -32,12 +32,15 @@ const BillForm = ({isOpen, friends, toggler, bills, setBills, currentBill, isEdi
   };
 
   const handleFriendSelect = (userId) => {
-    let newUsers = billFriends.map(user => ({
+    if (!friends || friends.length === 0) {
+      return; // Do nothing if friends is empty
+    }
+    const newUsers = friends.map(user => ({
       _id: user._id,
       name: user.name,
       included: (user._id == userId)? !user.included : user.included
     }))
-    setBillFriends(newUsers);
+    setFriends(newUsers);
   };
 
   const checkForm = () => {
@@ -58,7 +61,7 @@ const BillForm = ({isOpen, friends, toggler, bills, setBills, currentBill, isEdi
     checkForm();
     if(!titleErr && !friendsErr){
       let bFriends = [];
-      billFriends.map((f) => {
+      friends.map((f) => {
         if(f.included){
           bFriends.push(f);
         }
@@ -119,7 +122,7 @@ const BillForm = ({isOpen, friends, toggler, bills, setBills, currentBill, isEdi
             />}
           {friendsErr ?
             <FormGroup >
-              {billFriends.map((friend) => (
+              {friends.map((friend) => (
                 <FormControlLabel
                   value={friend.included}
                   onChange={(e) => handleFriendSelect(e.target, friend._id)}
@@ -130,7 +133,7 @@ const BillForm = ({isOpen, friends, toggler, bills, setBills, currentBill, isEdi
             </FormGroup>
             :
             <FormGroup >
-              {billFriends.map((friend) => (
+              {friends.map((friend) => (
                 <FormControlLabel
                   value={friend.included}
                   onChange={(e) => handleFriendSelect(e.target, friend._id)}
