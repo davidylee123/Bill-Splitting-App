@@ -17,13 +17,10 @@ import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { drawerWidth } from '../Theme';
+import { FormHelperText } from '@mui/material';
 
-const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentExpense, expenseSplitUsers, setExpenses }) => {
+const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentExpense, setCurrentExpense, users, setUsers, setExpenses }) => {
 
-  const [title, setTitle] = useState(currentExpense.title);
-  const [amount, setAmount] = useState(currentExpense.amount);
-  const [users, setUsers] = useState(expenseSplitUsers);
-  const [paidBy, setPaidBy] = useState(currentExpense.paidBy);
   const [titleErr, setTitleErr] = useState(false);
   const [amountErr, setAmountErr] = useState(false);
   const [usersErr, setUsersErr] = useState(false);
@@ -38,7 +35,6 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
   };
 
   const handleUserSelect = (userId) => {
-    console.log(JSON.stringify(users));
     if (!users || users.length === 0) {
       return; // Do nothing if users is empty
     }
@@ -51,44 +47,62 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
   }
 
   const checkForm = () => {
-    if (title.length < 1) {
+    let hasError = false;
+    if (currentExpense.title.length < 1) {
       setTitleErr(true);
+      hasError = true;
     } else {
       setTitleErr(false);
     }
-    if (!users && users.length < 1) {
+    if (currentExpense.amount < 0) {
+      setAmountErr(true);
+      hasError = true;
+    } else {
+      setAmountErr(false);
+    }
+    if (currentExpense.paidBy === undefined) {
+      setPaidByErr(true);
+      hasError = true;
+    } else {
+      setPaidByErr(false);
+    }
+    if (users.filter(user => user.included === true).length < 1) {
       setUsersErr(true);
+      hasError = true;
     } else {
       setUsersErr(false);
     }
+    return hasError;
   }
 
   function filterObjectsById(list1, list2) {
-    const idsInList2 = new Set(list2.map(item => item.id));
-    return list1.filter(item => idsInList2.has(item._id));
+    const idsInList2 = list2.filter(item => item.included);
+    return list1.filter(item => idsInList2.some(ref => ref.id === item._id));
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    checkForm();
-    if (isEditing) {
-      const newExpense = {
-        _id: currentExpense._id,
-        title: title,
-        amount: amount,
-        paidBy: paidBy,
-        users: filterObjectsById(billUsers, users)
-      }
-      console.log(JSON.stringify(newExpense));
-      handleEdit(currentExpense._id, newExpense);
+    if (checkForm()) {
+      alert('Please fill out all fields.');
     } else {
-      const newExpense = {
-        title: title,
-        amount: amount,
-        paidBy: paidBy,
-        users: filterObjectsById(billUsers, users)
+      if (isEditing) {
+        const newExpense = {
+          _id: currentExpense._id,
+          title: currentExpense.title,
+          amount: currentExpense.amount,
+          paidBy: currentExpense.paidBy,
+          users: filterObjectsById(billUsers, users)
+        }
+        handleEdit(currentExpense._id, newExpense);
+      } else {
+        const newExpense = {
+          title: currentExpense.title,
+          amount: currentExpense.amount,
+          paidBy: currentExpense.paidBy,
+          users: filterObjectsById(billUsers, users)
+        }
+        handleAdd(newExpense);
       }
-      handleAdd(newExpense);
     }
   }
 
@@ -128,15 +142,15 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
         // update the state if success
         if (response.status === 200) {
           setExpenses(response.data.expenses);
-          console.log("Expense added successfully!");
+          console.log("Expense edited successfully!");
         } else {
-          console.error("Error adding expense!", response.error);
+          console.error("Error editing expense!", response.error);
         }
       } else {
         console.error('Expense not found!');
       }
     } catch (error) {
-      console.error('There was an error adding the expense!', error);
+      console.error('There was an error editing the expense!', error);
     }
   }
 
@@ -173,15 +187,15 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
               helperText="Please enter a title."
               variant="outlined"
               placeholder="Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              value={currentExpense.title}
+              onChange={(e) => setCurrentExpense({...currentExpense, title: (e.target.value)})}
             />
             :
             <TextField
               variant="outlined"
               placeholder="Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              value={currentExpense.title}
+              onChange={(e) => setCurrentExpense({...currentExpense, title: (e.target.value)})}
             />}
           <FormLabel>Amount</FormLabel>
           {amountErr ?
@@ -190,28 +204,31 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
               helperText="Please enter a cost."
               variant="outlined"
               placeholder="Cost"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              value={currentExpense.amount}
+              onChange={(e) => setCurrentExpense({...currentExpense, amount: (e.target.value)})}
             />
             :
             <TextField
               variant="outlined"
               placeholder="Cost"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              value={currentExpense.amount}
+              onChange={(e) => setCurrentExpense({...currentExpense, amount: (e.target.value)})}
             />}
           {paidByErr ?
             <FormControl>
               <FormLabel id="select_paidby_label">Paid by:</FormLabel>
+              <FormHelperText error>Please select a user.</FormHelperText>
               <RadioGroup
                 aria-labelledby="select_paidby_label"
-                defaultValue={paidBy ? paidBy._id : undefined}
+                defaultValue={currentExpense.paidBy?._id}
               >
                 {billUsers.map((billUser) => (
                   <FormControlLabel
+                    key={billUser._id}
                     value={billUser._id}
                     control={<Radio color="error" />}
-                    onChange={(e) => setPaidBy(billUsers.find(u => u._id === e.target.value))}
+                    checked={billUser._id === currentExpense.paidBy?._id}
+                    onChange={(e) => setCurrentExpense({...currentExpense, paidBy: (billUsers.find(u => u._id === e.target.value))})}
                     label={billUser.name} />
                 ))}
               </RadioGroup >
@@ -221,13 +238,15 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
               <FormLabel id="select_paidby_label">Paid by:</FormLabel>
               <RadioGroup
                 aria-labelledby="select_paidby_label"
-                defaultValue={paidBy ? paidBy._id : undefined}
+                defaultValue={currentExpense.paidBy?._id}
               >
                 {billUsers.map((billUser) => (
                   <FormControlLabel
+                    key={billUser._id}
                     value={billUser._id}
                     control={<Radio />}
-                    onChange={(e) => setPaidBy(billUsers.find(u => u._id === e.target.value))}
+                    checked={billUser._id === currentExpense.paidBy?._id}
+                    onChange={(e) => setCurrentExpense({...currentExpense, paidBy: (billUsers.find(u => u._id === e.target.value))})}
                     label={billUser.name} />
                 ))}
               </RadioGroup>
@@ -236,11 +255,15 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
           {usersErr ?
             <FormControl>
               <FormLabel id="select_user_label">Split to:</FormLabel>
+              <FormHelperText error>Please select a user.</FormHelperText>
               <FormGroup
-                aria-labelledby="select_user_label">
+                aria-labelledby="select_user_label"
+                >
                 {users.map((user) => (
                   <FormControlLabel
-                    value={user.included}
+                    key={user.name}
+                    value={user.id}
+                    checked={user.included}
                     control={<Checkbox icon={<PersonOutlineOutlinedIcon color="error" />}
                       checkedIcon={<PersonAddIcon />} />}
                     label={user.name}
@@ -254,7 +277,9 @@ const ExpenseForm = ({ isOpen, toggler, bill_id, billUsers, isEditing, currentEx
               <FormGroup >
                 {users.map((user) => (
                   <FormControlLabel
-                    value={user.included}
+                    key={user.name}
+                    value={user.id}
+                    checked={user.included}
                     control={<Checkbox icon={<PersonOutlineOutlinedIcon />}
                       checkedIcon={<PersonAddIcon />} />}
                     label={user.name}
