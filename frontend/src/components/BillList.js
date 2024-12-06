@@ -61,6 +61,7 @@ const BillList = () => {
     title: '',
     users: [], 
   });
+  const[billUsers, setBillUsers] = useState([]);
   const [isEditingBill, setIsEditingBill] = useState(false);
 
   const getBills = async () => {
@@ -77,7 +78,7 @@ const BillList = () => {
   const getFriends = async () => {
     let userid = '64c87da267e2a12b3c5d6701';
     //get friends, which is a list of object ids
-    //get all users (just so the number of API queries is constant instead of linear, consider changing in the future for security reasons)
+    //get all users
     // if friend id == user id
     //      setFriends([...friends, { name: friend.name, included: false }]);
     try {
@@ -103,6 +104,10 @@ const BillList = () => {
     getBills();
     getFriends();
   }, [])
+
+  useEffect(() => {
+    setBillUsers(friends.map(user => ({ id: user._id, name: user.name, included: currentBill.users.some(billUser => billUser._id === user._id) })))
+  }, [currentBill])
 
   const toggleBillForm = () => {
     setIsOpen(!isOpen);
@@ -268,7 +273,7 @@ const BillList = () => {
         </Drawer>
 
         {/* Create New Bill Form */}
-        <BillForm isOpen={isOpen} friends={friends} bills={bills} setBills={setBills} toggler={toggleBillForm} currentBill={currentBill} isEditing={isEditingBill} setFriends={setFriends}/>
+        <BillForm isOpen={isOpen} friends={friends} bills={bills} setBills={setBills} toggler={toggleBillForm} currentBill={currentBill} setCurrentBill={setCurrentBill} isEditing={isEditingBill} billFriends={billUsers} setFriends={setFriends}/>
 
         {/* Bill List View */}
         <Main open={isOpen}>

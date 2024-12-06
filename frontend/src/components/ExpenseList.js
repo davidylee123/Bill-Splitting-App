@@ -154,7 +154,7 @@ const ExpenseList = ({ bill_id }) => {
               <Table stickyHeader aria-label="sticky table">
                 <TableHead>
                   <TableRow>
-                    <TableCell align="left"><h2>Expenses</h2></TableCell>
+                    <TableCell colSpan={3} align="left"><h2>Expenses</h2></TableCell>
                     <TableCell align="center"><h2>Total: $ {calculateTotal()}</h2></TableCell>
                     <TableCell align="right"><h2>Your Share: $ {calculateShare()}</h2></TableCell>
                   </TableRow>
