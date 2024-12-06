@@ -48,7 +48,7 @@ const BillList = () => {
   //for form drawer
   const [isOpen, setIsOpen] = React.useState(false);
   const [bills, setBills] = useState([]);
-  const [friends, setFriends] = useState([{ name: 'Andrew', included: false }, { name: 'Adriana', included: false }]);
+  const [friends, setFriends] = useState([]);
   const [addingFriend, setAddingFriend] = useState(false);
   const [newFriend, setNewFriend] = useState('');
   const [friendAddSuccess, setFriendAddSuccess] = useState(false);
@@ -88,7 +88,7 @@ const BillList = () => {
       users.data.map((u) => {
         thisUser.data.friends.map((f) => {
           if(u._id == f){
-            friendsArray.push({ name: u.name, included: false, _id: u._id });
+            friendsArray.push({ name: u.name, _id: u._id });
           }
         })
       });
@@ -273,7 +273,7 @@ const BillList = () => {
         </Drawer>
 
         {/* Create New Bill Form */}
-        <BillForm isOpen={isOpen} friends={friends} bills={bills} setBills={setBills} toggler={toggleBillForm} currentBill={currentBill} setCurrentBill={setCurrentBill} isEditing={isEditingBill} billFriends={billUsers} setFriends={setFriends}/>
+        <BillForm isOpen={isOpen} friends={friends} bills={bills} setBills={setBills} toggler={toggleBillForm} currentBill={currentBill} setCurrentBill={setCurrentBill} isEditing={isEditingBill} billFriends={billUsers} setBillFriends={setBillUsers} />
 
         {/* Bill List View */}
         <Main open={isOpen}>

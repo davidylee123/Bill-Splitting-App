@@ -14,7 +14,7 @@ import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { drawerWidth } from '../Theme';
 
-const BillForm = ({isOpen, friends, setFriends, toggler, bills, setBills, currentBill, setCurrentBill, billFriends, isEditing}) => {
+const BillForm = ({isOpen, friends, toggler, bills, setBills, currentBill, setCurrentBill, billFriends, setBillFriends, isEditing}) => {
   const [titleErr, setTitleErr] = useState(false);
   const [friendsErr, setFriendsErr] = useState(false);
 
@@ -25,15 +25,15 @@ const BillForm = ({isOpen, friends, setFriends, toggler, bills, setBills, curren
   };
 
   const handleFriendSelect = (userId) => {
-    if (!friends || friends.length === 0) {
+    if (!billFriends || billFriends.length === 0) {
       return; // Do nothing if friends is empty
     }
-    const newUsers = friends.map(user => ({
-      _id: user._id,
+    const newUsers = billFriends.map(user => ({
+      id: user.id,
       name: user.name,
-      included: (user._id == userId)? !user.included : user.included
+      included: (user.id == userId)? !user.included : user.included
     }))
-    setFriends(newUsers);
+    setBillFriends(newUsers);
   };
 
   const checkForm = () => {
@@ -54,6 +54,11 @@ const BillForm = ({isOpen, friends, setFriends, toggler, bills, setBills, curren
     return hasError;
   }
 
+  function filterObjectsById(list1, list2) {
+    const idsInList2 = list2.filter(item => item.included);
+    return list1.filter(item => idsInList2.some(ref => ref.id === item._id));
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -66,10 +71,10 @@ const BillForm = ({isOpen, friends, setFriends, toggler, bills, setBills, curren
       });
       
       if(isEditing){
-        const newBill = {_id: currentBill._id, title: currentBill.title, expenses: [], users: friends};
+        const newBill = {_id: currentBill._id, title: currentBill.title, expenses: [], users: filterObjectsById(friends, billFriends)};
         handleEdit(currentBill._id, newBill);
       }else{
-        const newBill = {title: currentBill.title, expenses: [], users: friends};
+        const newBill = {title: currentBill.title, expenses: [], users: filterObjectsById(friends, billFriends)};
         handleAdd(newBill);
       }
     //}else{
@@ -153,8 +158,10 @@ const BillForm = ({isOpen, friends, setFriends, toggler, bills, setBills, curren
             <FormGroup >
               {billFriends.map((friend) => (
                 <FormControlLabel
-                  value={friend.included}
-                  onChange={(e) => handleFriendSelect(e.target, friend._id)}
+                  key={friend.name}
+                  value={friend.id}
+                  checked={friend.included}
+                  onChange={(e) => handleFriendSelect(friend.id)}
                   control={<Checkbox icon={<PersonOutlineOutlinedIcon color="error" />}
                     checkedIcon={<PersonAddIcon />} />}
                   label={friend.name} />
@@ -164,8 +171,10 @@ const BillForm = ({isOpen, friends, setFriends, toggler, bills, setBills, curren
             <FormGroup >
               {billFriends.map((friend) => (
                 <FormControlLabel
-                  value={friend.included}
-                  onChange={(e) => handleFriendSelect(e.target, friend._id)}
+                  key={friend.name}
+                  value={friend.id}
+                  checked={friend.included}
+                  onChange={(e) => handleFriendSelect(friend.id)}
                   control={<Checkbox icon={<PersonOutlineOutlinedIcon />}
                     checkedIcon={<PersonAddIcon />} />}
                   label={friend.name} />
